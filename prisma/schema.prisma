@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model RoomType {
+  id            String    @id @default(uuid())
+  slug          String    @unique
+  name          String
+  category      String    // e.g. "Couple", "Deluxe", "Family", "Suite"
+  isAc          Boolean   @default(true)
+  basePrice     Int       // BDT price per night
+  capacity      Int       // number of guests
+  bedType       String    // e.g. "1 King Bed", "2 Queen Beds", "1 Double Bed"
+  sizeSqFt      Int       // e.g. 280
+  description   String
+  images        String    // JSON array of image URLs
+  amenities     String    // JSON array of strings
+  featured      Boolean   @default(false)
+  availableUnits Int      @default(5)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+}
+
+model Booking {
+  id              String    @id @default(uuid())
+  bookingCode     String    @unique
+  guestName       String
+  guestEmail      String
+  guestPhone      String
+  guestNidPassport String?
+  checkIn         DateTime
+  checkOut        DateTime
+  nights          Int
+  adults          Int       @default(2)
+  children        Int       @default(0)
+  totalAmount     Int       // BDT
+  paidAmount      Int       @default(0)
+  paymentStatus   String    @default("PENDING") // PENDING, PAID, REFUNDED
+  paymentMethod   String    @default("PAY_AT_HOTEL") // BKASH, NAGAD, CARD, PAY_AT_HOTEL
+  status          String    @default("CONFIRMED") // CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
+  specialRequests String?
+  airportTransfer Boolean   @default(false)
+  extraBed        Boolean   @default(false)
+  breakfast       Boolean   @default(false)
+  roomTypeId      String
+  roomType        RoomType  @relation(fields: [roomTypeId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  rating    Int      @default(5)
+  comment   String
+  roomName  String
+  date      String
+  avatar    String?
+  createdAt DateTime @default(now())
+}

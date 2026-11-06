@@ -1,0 +1,68 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 253, 251, 247;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: #fdfbf7;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Luxury Gold Gradient */
+.gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #f3e098 50%, #b89326 100%);
+}
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #8b6508 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark-luxury-gradient {
+  background: linear-gradient(180deg, #0d1525 0%, #060a12 100%);
+}
+
+/* Glassmorphism */
+.glass-nav {
+  background: rgba(11, 17, 30, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Subtle smooth transition for cards */
+.luxury-card {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -10px rgba(184, 147, 38, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0d1525;
+}
+::-webkit-scrollbar-thumb {
+  background: #b89326;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
