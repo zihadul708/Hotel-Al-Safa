@@ -41,12 +41,47 @@ export async function POST(req: Request) {
       airportTransfer,
       extraBed,
       breakfast,
+      promoCode,
+      discountAmount,
     } = body;
 
     if (!roomTypeId || !guestName || !guestPhone || !checkIn || !checkOut) {
       return NextResponse.json(
         { error: "Required fields missing" },
         { status: 400 }
+      );
+    }
+
+    const parsedCheckIn = new Date(checkIn);
+    const parsedCheckOut = new Date(checkOut);
+
+    // Verify room exists and check available units
+    const roomType = await prisma.roomType.findUnique({
+      where: { id: roomTypeId },
+    });
+
+    if (!roomType) {
+      return NextResponse.json({ error: "Room category not found" }, { status: 404 });
+    }
+
+    // Count overlapping active bookings
+    const overlappingBookings = await prisma.booking.count({
+      where: {
+        roomTypeId,
+        status: { in: ["CONFIRMED", "CHECKED_IN"] },
+        AND: [
+          { checkIn: { lt: parsedCheckOut } },
+          { checkOut: { gt: parsedCheckIn } },
+        ],
+      },
+    });
+
+    if (overlappingBookings >= roomType.availableUnits) {
+      return NextResponse.json(
+        {
+          error: `Sorry, ${roomType.name} is fully booked for these dates (${overlappingBookings}/${roomType.availableUnits} units occupied). Please select different dates or another suite.`,
+        },
+        { status: 409 }
       );
     }
 
@@ -61,8 +96,8 @@ export async function POST(req: Request) {
         guestEmail: guestEmail || "guest@hotelalsafabd.com",
         guestPhone,
         guestNidPassport: guestNidPassport || null,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
+        checkIn: parsedCheckIn,
+        checkOut: parsedCheckOut,
         nights: Number(nights) || 1,
         adults: Number(adults) || 2,
         children: Number(children) || 0,
@@ -75,6 +110,8 @@ export async function POST(req: Request) {
         airportTransfer: Boolean(airportTransfer),
         extraBed: Boolean(extraBed),
         breakfast: Boolean(breakfast),
+        promoCode: promoCode || null,
+        discountAmount: Number(discountAmount) || 0,
         roomTypeId,
       },
       include: {

@@ -6,6 +6,8 @@ async function main() {
   console.log("Seeding Hotel Al Safa database...");
 
   // Clear existing records
+  await prisma.inquiry.deleteMany();
+  await prisma.promoCode.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.roomType.deleteMany();
@@ -275,6 +277,55 @@ async function main() {
           "Very smooth booking directly through the website with bKash. The photos matched the actual room 100%. Hot shower, high-speed Wi-Fi, and 24h room service.",
         roomName: "Super Deluxe Twin Bed",
         date: "November 2026",
+      },
+    ],
+  });
+
+  // Seed Promo Codes
+  await prisma.promoCode.createMany({
+    data: [
+      {
+        code: "ALSAFA10",
+        discountPct: 10,
+        discountAmt: null,
+        minNights: 1,
+        isActive: true,
+      },
+      {
+        code: "TRANSIT500",
+        discountPct: null,
+        discountAmt: 500,
+        minNights: 1,
+        isActive: true,
+      },
+      {
+        code: "WELCOME",
+        discountPct: null,
+        discountAmt: 300,
+        minNights: 1,
+        isActive: true,
+      },
+    ],
+  });
+
+  // Seed sample guest inquiries
+  await prisma.inquiry.createMany({
+    data: [
+      {
+        name: "Kamal Hossain",
+        email: "kamal.hossain@gmail.com",
+        phone: "+880 1715-998877",
+        subject: "Late Night Airport Shuttle (2:30 AM arrival)",
+        message: "We are arriving on flight EK-584 at 2:30 AM with 3 large suitcases. Do you offer shuttle pickup at that time?",
+        status: "NEW",
+      },
+      {
+        name: "Farhana Yasmin",
+        email: "farhana.y@corporate.bd",
+        phone: "+880 1819-445566",
+        subject: "Executive Suite booking for 4 nights",
+        message: "Can you arrange early check-in around 9:00 AM on Friday for the Executive Family Suite?",
+        status: "READ",
       },
     ],
   });

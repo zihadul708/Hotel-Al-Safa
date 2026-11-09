@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import confetti from "canvas-confetti";
 import {
   X,
@@ -20,6 +21,9 @@ import {
   Printer,
   Download,
   AlertCircle,
+  Tag,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 
 export interface RoomOption {
@@ -78,6 +82,16 @@ export function BookingModal({
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Promo Code
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountAmount: number;
+    message: string;
+  } | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
+
   // Load rooms and default dates
   useEffect(() => {
     fetch("/api/rooms")
@@ -133,8 +147,48 @@ export function BookingModal({
 
   // 5% Service Tax & Surcharge
   const subtotal = roomCost + addOnsTotal;
-  const taxAmount = Math.round(subtotal * 0.05);
-  const grandTotal = subtotal + taxAmount;
+  const discountAmount = appliedPromo ? appliedPromo.discountAmount : 0;
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const taxAmount = Math.round(taxableAmount * 0.05);
+  const grandTotal = taxableAmount + taxAmount;
+
+  const handleApplyPromo = async () => {
+    if (!promoCodeInput.trim()) return;
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      const res = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: promoCodeInput.trim(),
+          nights,
+          baseAmount: subtotal,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setPromoError(data.message || "Invalid coupon code.");
+        setAppliedPromo(null);
+      } else {
+        setAppliedPromo({
+          code: data.code,
+          discountAmount: data.discountAmount,
+          message: data.message,
+        });
+      }
+    } catch {
+      setPromoError("Failed to validate promo code.");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoCodeInput("");
+    setPromoError("");
+  };
 
   const handleNextStep1 = () => {
     setErrorMsg("");
@@ -186,6 +240,8 @@ export function BookingModal({
         airportTransfer,
         extraBed,
         breakfast,
+        promoCode: appliedPromo?.code || null,
+        discountAmount,
       };
 
       const res = await fetch("/api/bookings", {
@@ -195,7 +251,8 @@ export function BookingModal({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to complete reservation. Please try again.");
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Failed to complete reservation. Please try again.");
       }
 
       const booking = await res.json();
@@ -733,6 +790,56 @@ export function BookingModal({
                 </div>
               )}
 
+              {/* Promo Code Box */}
+              <div className="bg-[#0b1222] p-3.5 rounded-xl border border-gray-800">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
+                    <Tag className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Have a Promo / Voucher Code?</span>
+                  </div>
+                  <span className="text-[10px] text-gray-400">
+                    Try: <span className="text-gold-400 font-mono">ALSAFA10</span> (10% off) or{" "}
+                    <span className="text-gold-400 font-mono">TRANSIT500</span>
+                  </span>
+                </div>
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between bg-emerald-950/40 border border-emerald-600/50 rounded-lg px-3 py-2 text-xs">
+                    <div className="flex items-center gap-2 text-emerald-400 font-medium">
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>{appliedPromo.message}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemovePromo}
+                      className="text-gray-400 hover:text-red-400 text-[11px] underline ml-2"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter code (e.g. ALSAFA10)"
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                      className="flex-1 bg-[#141f36] border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white uppercase placeholder:normal-case focus:outline-none focus:border-gold-500"
+                    />
+                    <button
+                      type="button"
+                      disabled={promoLoading || !promoCodeInput.trim()}
+                      onClick={handleApplyPromo}
+                      className="bg-gold-500 hover:bg-gold-400 disabled:opacity-50 text-black text-xs font-bold px-4 py-1.5 rounded-lg transition"
+                    >
+                      {promoLoading ? "Applying..." : "Apply"}
+                    </button>
+                  </div>
+                )}
+                {promoError && (
+                  <p className="text-[11px] text-red-400 mt-1.5">{promoError}</p>
+                )}
+              </div>
+
               {/* Order breakdown */}
               <div className="bg-[#0b1222] p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
                 <div className="flex justify-between text-gray-300">
@@ -743,6 +850,12 @@ export function BookingModal({
                   <div className="flex justify-between text-gray-300">
                     <span>Selected Add-ons (Shuttle, Bed, Breakfast)</span>
                     <span>৳{addOnsTotal.toLocaleString()}</span>
+                  </div>
+                )}
+                {appliedPromo && discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-400 font-medium">
+                    <span>Promo Discount ({appliedPromo.code})</span>
+                    <span>-৳{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-gray-400">
@@ -862,6 +975,14 @@ export function BookingModal({
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  href={`/booking/${confirmedBooking.bookingCode}`}
+                  target="_blank"
+                  className="flex items-center gap-2 bg-[#1a263d] hover:bg-[#223252] text-gold-300 text-xs px-5 py-2.5 rounded-xl border border-gold-500/40 font-semibold transition"
+                >
+                  <ExternalLink className="w-4 h-4 text-gold-400" />
+                  <span>View Official Web Voucher</span>
+                </Link>
                 <button
                   onClick={handlePrint}
                   className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white text-xs px-5 py-2.5 rounded-xl border border-gray-700 transition"

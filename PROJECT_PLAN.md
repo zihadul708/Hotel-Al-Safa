@@ -49,3 +49,17 @@ Inspired by the transit hospitality layout of **[Hotel D'Palace BD](https://hote
 - [x] Payment status editor: `PAID`, `PENDING`, `REFUNDED`.
 - [x] Guest Reservation Details viewer modal with flight info and special requests.
 - [x] Room Rates & Pricing Manager: 1-click nightly base rate editor with immediate live-site sync.
+
+### Phase 5: Dedicated Showcase Routes, Availability Engine, Promo System & Enterprise Admin Tools [COMPLETED ✅]
+- [x] **Full Rooms & Suites Catalog Route (`/rooms`)**: Multi-faceted filter system (AC / Non-AC, Category chips, Sort by price, Real-time keyword search) with direct "Book Online" and "Full Details" triggers.
+- [x] **Deep Room Detail Pages (`/rooms/[slug]`)**: Dynamic presentation for every suite with multi-photo gallery & thumbnail selector, specification matrix (Bed, Area, Climate, Occupancy), complimentary amenities checklist, check-in policies, and sticky reservation card.
+- [x] **Dedicated Halal Dining & Gourmet Showcase (`/dining`)**: Curated menu tabs (Old Dhaka Biryani & Kacchi, Royal Desi & Continental Breakfast, Bangla-Chinese & Quick Transit Meals, Beverages & Dudh Cha), 24/7 room service hotline & direct WhatsApp food ordering.
+- [x] **Dedicated Facilities & Services Showcase (`/amenities`)**: Comprehensive cards for 24/7 Airport Shuttle (5 mins to HSIA), 24h Hot Water Geyser, Heavy Standby Generator (100% backup), Ultra-Fast Fiber Wi-Fi, Luggage Cloakroom, and Ashkona Hajj & Umrah assistance.
+- [x] **Dedicated Contact & Transit Route Guide (`/contact`)**: Interactive Guest Inquiry Form with instant backend persistence (`/api/inquiries`), Airport & Hajj Camp directions, interactive Google Map, and FAQ accordion.
+- [x] **Permanent Web Booking Voucher Route (`/booking/[code]`)**: Letterhead-styled official confirmation voucher with status badge (`PAID & CONFIRMED` vs `PAY ON ARRIVAL`), itemized pricing breakdown, flight notes, print stylesheet (`@media print`), and WhatsApp verification.
+- [x] **Real-Time Booking Availability & Double-Booking Prevention**: Date-overlap algorithm in `/api/bookings` checks active bookings against `availableUnits` to prevent overbooking.
+- [x] **Promo & Voucher Code Engine (`/api/promo`)**: Integrated promo validator supporting discount percentage (`ALSAFA10` - 10% off) or fixed amount (`TRANSIT500` - ৳500 off) with live discount recalculation in the booking modal.
+- [x] **Admin Staff PIN Security Gate**: Quick PIN lock screen protecting `/admin` (Default: `1234` / `2026`) with browser session management and one-click logout.
+- [x] **Admin 1-Click CSV Data Export**: Downloads `hotel-al-safa-reservations-[date].csv` containing all reservation data, guest contacts, and financials for front-desk accounting.
+- [x] **Admin Front-Desk Walk-in Booking Creator**: Modal for staff to immediately register walk-in guests directly at the counter.
+- [x] **Admin Guest Inquiries Manager**: Live feed of submitted messages with status toggles (`NEW`, `READ`, `RESPONDED`), phone dialer, WhatsApp reply, and deletion.

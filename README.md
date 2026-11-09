@@ -51,6 +51,19 @@
 | | • Payment status editor (`PAID`, `PENDING`, `REFUNDED`) | `[x]` |
 | | • Guest reservation details viewer modal (special requests, flight notes, add-ons) | `[x]` |
 | | • Room Rates & Pricing Manager: 1-click nightly rate editor with instant live-site updates | `[x]` |
+| **Phase 5** | **Dedicated Showcase Routes, Promo Engine & Enterprise Admin Suite** | **Completed** ✅ |
+| | • Full filterable Rooms & Suites Catalog route (`/rooms`) with AC/Non-AC, price sort & search | `[x]` |
+| | • Deep individual Room Detail pages (`/rooms/[slug]`) with photo gallery, specs & sticky booking | `[x]` |
+| | • Dedicated Halal Dining & Cuisine showcase (`/dining`) with 4 menu sections & room service orders | `[x]` |
+| | • Dedicated Facilities & Services showcase (`/amenities`) highlighting 24/7 airport shuttle & generator | `[x]` |
+| | • Dedicated Contact & Transit Guide (`/contact`) with interactive guest inquiry form & FAQs | `[x]` |
+| | • Permanent Web Booking Voucher route (`/booking/[code]`) with print stylesheet (`@media print`) | `[x]` |
+| | • Overbooking prevention engine in `/api/bookings` validating date overlaps against available units | `[x]` |
+| | • Promo & Voucher Code discount validator (`/api/promo`) with `ALSAFA10` & `TRANSIT500` support | `[x]` |
+| | • Staff PIN Security Gate on `/admin` (Default PIN: `1234` / `2026`) with session persistence | `[x]` |
+| | • 1-Click CSV Data Export for front-desk accounting and audit reporting | `[x]` |
+| | • Direct Walk-in Guest Reservation modal in `/admin` with instant room assignment | `[x]` |
+| | • Guest Inquiries Management tab with WhatsApp follow-up and status controls | `[x]` |
 
 ---
 
@@ -82,7 +95,7 @@ npm install
 ```bash
 npm run seed
 ```
-This initializes the SQLite database (`prisma/dev.db`) and seeds standard room categories (Couple AC, Couple Non-AC, Super Deluxe, Royal Family Suite, Presidential Suite), sample bookings, and guest reviews.
+This initializes the SQLite database (`prisma/dev.db`) and seeds standard room categories, active reservations, promo codes (`ALSAFA10`, `TRANSIT500`), and sample guest inquiries.
 
 ### 4. Start Development Server
 ```bash
@@ -90,7 +103,13 @@ npm run dev
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser:
 - **Public Guest Site**: `http://localhost:3000`
-- **Staff & Admin Management Portal**: `http://localhost:3000/admin`
+- **Rooms Catalog**: `http://localhost:3000/rooms`
+- **Individual Room Detail**: `http://localhost:3000/rooms/couple-ac-deluxe`
+- **Halal Dining Showcase**: `http://localhost:3000/dining`
+- **Amenities & Transit Facilities**: `http://localhost:3000/amenities`
+- **Contact & Inquiry Guide**: `http://localhost:3000/contact`
+- **Web Booking Voucher**: `http://localhost:3000/booking/ALSAFA-84291`
+- **Staff & Admin Management Portal**: `http://localhost:3000/admin` *(Staff PIN: `1234`)*
 
 ---
 
@@ -99,10 +118,20 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser:
 | Route | Description |
 | :--- | :--- |
 | `/` | Public hotel showcase, interactive booking bar, room cards, dining, amenities, and location map. |
-| `/admin` | Centralized front desk operations portal, reservation table, status management, and room rate editor. |
+| `/rooms` | Full rooms catalog with AC/Non-AC, capacity, and price filters. |
+| `/rooms/[slug]` | Individual suite presentation with photo gallery, specs matrix, policies, and sticky booking card. |
+| `/dining` | Dedicated dining experience page with Breakfast, Biryani, Chinese, and room service menus. |
+| `/amenities` | Detailed facilities guide (24/7 Airport Shuttle, Generator, Geyser, Wi-Fi, Luggage storage). |
+| `/contact` | Contact information, interactive inquiry form, airport route guides, and FAQs. |
+| `/booking/[code]` | Official branded web booking voucher with print layout. |
+| `/admin` | Staff PIN-protected front desk operations portal with CSV export, walk-in reservations, inquiries, and room rates. |
 | `/api/rooms` | GET all room categories & PATCH nightly base price / availability. |
-| `/api/bookings` | GET all reservations & POST new guest bookings. |
+| `/api/bookings` | GET all reservations & POST new guest bookings with date-overlap check. |
 | `/api/bookings/[id]` | PATCH reservation status (`CONFIRMED`, `CHECKED_IN`, etc.) & DELETE reservations. |
+| `/api/bookings/code/[code]` | GET booking voucher by unique reference code. |
+| `/api/promo` | POST validate promotional discount codes (`ALSAFA10`, `TRANSIT500`). |
+| `/api/inquiries` | GET all guest inquiries & POST new contact form messages. |
+| `/api/inquiries/[id]` | PATCH inquiry status (`NEW`, `READ`, `RESPONDED`) & DELETE inquiries. |
 
 ---
 

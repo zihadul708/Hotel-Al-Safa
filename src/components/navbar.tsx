@@ -72,11 +72,11 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
 
   const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Rooms & Suites", href: "/#rooms" },
-    { label: "Amenities", href: "/#amenities" },
-    { label: "Dining", href: "/#dining" },
+    { label: "Rooms & Suites", href: "/rooms" },
+    { label: "Amenities", href: "/amenities" },
+    { label: "Dining", href: "/dining" },
     { label: "Location", href: "/#location" },
-    { label: "Contact", href: "/#contact" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (
