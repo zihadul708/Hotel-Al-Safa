@@ -266,14 +266,14 @@ export default function BookingVoucherPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <h4 className="text-lg font-bold text-white print:text-black">
-                  {booking.roomType.name}
+                  {booking.roomType?.name || "Hotel Room Reservation"}
                 </h4>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 print:text-gray-700 mt-1">
-                  <span>{booking.roomType.bedType}</span>
+                  <span>{booking.roomType?.bedType || "Standard Bed"}</span>
                   <span>•</span>
-                  <span>{booking.roomType.sizeSqFt} sq. ft.</span>
+                  <span>{booking.roomType?.sizeSqFt || 240} sq. ft.</span>
                   <span>•</span>
-                  <span>{booking.roomType.isAc ? "Air Conditioned" : "Non-AC"}</span>
+                  <span>{booking.roomType?.isAc ? "Air Conditioned" : "Non-AC"}</span>
                 </div>
               </div>
               <div className="text-right">

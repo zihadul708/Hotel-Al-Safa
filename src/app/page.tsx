@@ -63,13 +63,14 @@ export default function HomePage() {
 
   useEffect(() => {
     fetch("/api/rooms")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        setRooms(data);
+        setRooms(Array.isArray(data) ? data : []);
         setLoadingRooms(false);
       })
       .catch((err) => {
         console.error("Failed to load rooms:", err);
+        setRooms([]);
         setLoadingRooms(false);
       });
 
@@ -89,10 +90,11 @@ export default function HomePage() {
     setSelectedDetailRoom(room);
   };
 
+  const safeRooms = Array.isArray(rooms) ? rooms : [];
   const filteredRooms =
     activeCategory === "ALL"
-      ? rooms
-      : rooms.filter((r) => r.category.toUpperCase() === activeCategory.toUpperCase());
+      ? safeRooms
+      : safeRooms.filter((r) => r.category && r.category.toUpperCase() === activeCategory.toUpperCase());
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-gray-900 flex flex-col font-sans selection:bg-gold-400 selection:text-black">
@@ -387,7 +389,7 @@ export default function HomePage() {
             ) : (
               <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredRooms.map((room) => {
-                  const mainImage = room.images[0] || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
+                  const mainImage = (Array.isArray(room.images) && room.images[0]) || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
 
                   return (
                     <StaggerItem key={room.id}>

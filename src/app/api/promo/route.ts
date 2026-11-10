@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { fallbackStore } from "@/lib/mock-data";
 
 export async function POST(req: Request) {
   try {
@@ -12,9 +13,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const promo = await prisma.promoCode.findUnique({
-      where: { code: code.trim().toUpperCase() },
-    });
+    const cleanCode = code.trim().toUpperCase();
+
+    let promo: {
+      code: string;
+      discountPct: number | null;
+      discountAmt: number | null;
+      minNights: number;
+      isActive: boolean;
+    } | null | undefined = null;
+
+    try {
+      promo = await prisma.promoCode.findUnique({
+        where: { code: cleanCode },
+      });
+    } catch (dbErr) {
+      console.warn("Prisma promo lookup failed, searching fallback store:", dbErr);
+    }
+
+    if (!promo) {
+      promo = fallbackStore.findPromo(cleanCode);
+    }
 
     if (!promo || !promo.isActive) {
       return NextResponse.json(

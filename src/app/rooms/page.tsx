@@ -45,30 +45,32 @@ export default function RoomsPage() {
 
   useEffect(() => {
     fetch("/api/rooms")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: RoomTypeData[]) => {
-        setRooms(data);
+        setRooms(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Failed to fetch rooms:", err);
+        setRooms([]);
         setLoading(false);
       });
   }, []);
 
   const filteredRooms = useMemo(() => {
-    return rooms
+    const safeRooms = Array.isArray(rooms) ? rooms : [];
+    return safeRooms
       .filter((r) => {
-        if (selectedCategory !== "ALL" && r.category.toUpperCase() !== selectedCategory) {
+        if (selectedCategory !== "ALL" && r.category && r.category.toUpperCase() !== selectedCategory) {
           return false;
         }
         if (acFilter === "AC" && !r.isAc) return false;
         if (acFilter === "NON_AC" && r.isAc) return false;
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchesName = r.name.toLowerCase().includes(q);
-          const matchesDesc = r.description.toLowerCase().includes(q);
-          const matchesBed = r.bedType.toLowerCase().includes(q);
+          const matchesName = r.name?.toLowerCase().includes(q);
+          const matchesDesc = r.description?.toLowerCase().includes(q);
+          const matchesBed = r.bedType?.toLowerCase().includes(q);
           if (!matchesName && !matchesDesc && !matchesBed) return false;
         }
         return true;
@@ -219,7 +221,7 @@ export default function RoomsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredRooms.map((room) => {
-                const mainImage = room.images[0] || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
+                const mainImage = (Array.isArray(room.images) && room.images[0]) || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
 
                 return (
                   <div

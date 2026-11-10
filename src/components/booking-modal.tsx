@@ -95,17 +95,21 @@ export function BookingModal({
   // Load rooms and default dates
   useEffect(() => {
     fetch("/api/rooms")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: RoomOption[]) => {
-        setRooms(data);
+        const safeData = Array.isArray(data) ? data : [];
+        setRooms(safeData);
         if (selectedRoomSlug) {
-          const match = data.find((r) => r.slug === selectedRoomSlug);
+          const match = safeData.find((r) => r.slug === selectedRoomSlug);
           if (match) setSelectedRoomId(match.id);
-        } else if (data.length > 0 && !selectedRoomId) {
-          setSelectedRoomId(data[0].id);
+        } else if (safeData.length > 0 && !selectedRoomId) {
+          setSelectedRoomId(safeData[0].id);
         }
       })
-      .catch((err) => console.error("Error loading rooms:", err));
+      .catch((err) => {
+        console.error("Error loading rooms:", err);
+        setRooms([]);
+      });
 
     const today = new Date();
     const tomorrow = new Date(today);
@@ -118,7 +122,7 @@ export function BookingModal({
 
   // Sync selected room when prop changes
   useEffect(() => {
-    if (selectedRoomSlug && rooms.length > 0) {
+    if (selectedRoomSlug && Array.isArray(rooms) && rooms.length > 0) {
       const match = rooms.find((r) => r.slug === selectedRoomSlug);
       if (match) setSelectedRoomId(match.id);
     }
@@ -135,7 +139,7 @@ export function BookingModal({
   };
 
   const nights = calculateNights();
-  const currentRoom = rooms.find((r) => r.id === selectedRoomId);
+  const currentRoom = Array.isArray(rooms) ? rooms.find((r) => r.id === selectedRoomId) : undefined;
   const baseRate = currentRoom ? currentRoom.basePrice : 3500;
   const roomCost = baseRate * nights;
 
@@ -419,7 +423,7 @@ export function BookingModal({
                   Select Room Category
                 </label>
                 <div className="space-y-3">
-                  {rooms.map((room) => {
+                  {Array.isArray(rooms) && rooms.map((room) => {
                     const isSelected = selectedRoomId === room.id;
                     return (
                       <div

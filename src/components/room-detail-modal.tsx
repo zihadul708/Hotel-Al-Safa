@@ -29,6 +29,10 @@ export function RoomDetailModal({ room, isOpen, onClose, onBookNow }: RoomDetail
 
   if (!isOpen || !room) return null;
 
+  const images = Array.isArray(room.images) ? room.images : [];
+  const amenities = Array.isArray(room.amenities) ? room.amenities : [];
+  const currentImage = images[activeImageIdx] || images[0] || "/logo.png";
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
       <div className="relative w-full max-w-4xl bg-[#0e1626] border border-gold-500/30 rounded-2xl shadow-2xl overflow-hidden text-white my-8">
@@ -46,7 +50,7 @@ export function RoomDetailModal({ room, isOpen, onClose, onBookNow }: RoomDetail
           <div className="bg-black/40 p-4 flex flex-col justify-between">
             <div className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden border border-gray-800">
               <Image
-                src={room.images[activeImageIdx] || room.images[0]}
+                src={currentImage}
                 alt={room.name}
                 fill
                 className="object-cover transition-all duration-300"
@@ -58,9 +62,9 @@ export function RoomDetailModal({ room, isOpen, onClose, onBookNow }: RoomDetail
             </div>
 
             {/* Thumbnail Navigation */}
-            {room.images.length > 1 && (
+            {images.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                {room.images.map((img, idx) => (
+                {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIdx(idx)}
@@ -119,7 +123,7 @@ export function RoomDetailModal({ room, isOpen, onClose, onBookNow }: RoomDetail
                   Complimentary Amenities
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  {room.amenities.map((item, i) => (
+                  {amenities.map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-gray-300">
                       <div className="w-3.5 h-3.5 rounded-full bg-gold-400/20 text-gold-400 flex items-center justify-center flex-shrink-0">
                         <Check className="w-2.5 h-2.5" />

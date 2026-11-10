@@ -158,9 +158,9 @@ export default function AdminDashboardPage() {
         fetch("/api/inquiries"),
       ]);
 
-      const dataBookings = await resBookings.json();
-      const dataRooms = await resRooms.json();
-      const dataInquiries = await resInquiries.json();
+      const dataBookings = resBookings.ok ? await resBookings.json() : [];
+      const dataRooms = resRooms.ok ? await resRooms.json() : [];
+      const dataInquiries = resInquiries.ok ? await resInquiries.json() : [];
 
       setBookings(Array.isArray(dataBookings) ? dataBookings : []);
       setRooms(Array.isArray(dataRooms) ? dataRooms : []);

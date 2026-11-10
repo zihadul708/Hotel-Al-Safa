@@ -43,10 +43,11 @@ export default function RoomDetailPage() {
 
   useEffect(() => {
     fetch("/api/rooms")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : []))
       .then((rooms: RoomTypeData[]) => {
-        setAllRooms(rooms);
-        const match = rooms.find((r) => r.slug === slug);
+        const safeRooms = Array.isArray(rooms) ? rooms : [];
+        setAllRooms(safeRooms);
+        const match = safeRooms.find((r) => r.slug === slug);
         if (match) {
           setRoom(match);
         }
@@ -54,6 +55,7 @@ export default function RoomDetailPage() {
       })
       .catch((err) => {
         console.error("Failed to load room details:", err);
+        setAllRooms([]);
         setLoading(false);
       });
   }, [slug]);
@@ -97,7 +99,7 @@ export default function RoomDetailPage() {
   }
 
   const otherRooms = allRooms.filter((r) => r.slug !== slug).slice(0, 3);
-  const currentImages = room.images.length > 0 ? room.images : ["https://images.unsplash.com/photo-1590490360182-c33d57733427"];
+  const currentImages = Array.isArray(room.images) && room.images.length > 0 ? room.images : ["https://images.unsplash.com/photo-1590490360182-c33d57733427"];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
@@ -386,7 +388,7 @@ export default function RoomDetailPage() {
                   >
                     <div className="relative h-48 w-full bg-gray-900">
                       <Image
-                        src={alt.images[0] || "https://images.unsplash.com/photo-1590490360182-c33d57733427"}
+                        src={(Array.isArray(alt.images) && alt.images[0]) || "https://images.unsplash.com/photo-1590490360182-c33d57733427"}
                         alt={alt.name}
                         fill
                         className="object-cover"
