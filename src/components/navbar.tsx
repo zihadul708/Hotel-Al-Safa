@@ -33,19 +33,10 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-1.5 text-gold-400/90 font-medium">
+          <div className="flex items-center gap-1.5 text-gold-400/90 font-medium text-xs">
             <Clock className="w-3.5 h-3.5" />
             <span>24/7 Front Desk & Airport Shuttle</span>
           </div>
-          <a
-            href="https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20would%20like%20to%20inquire%20about%20room%20availability"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span>WhatsApp Direct</span>
-          </a>
         </div>
       </div>
     </div>

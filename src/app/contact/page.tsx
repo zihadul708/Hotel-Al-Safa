@@ -153,23 +153,18 @@ export default function ContactPage() {
               <p className="text-xs text-gray-500">Also reachable: +880 1711-000000</p>
             </div>
 
-            {/* WhatsApp */}
+            {/* Front Desk Support */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-lg space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#25D366]/15 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] mb-3">
-                <MessageCircle className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-gold-50 border border-gold-200 flex items-center justify-center text-gold-600 mb-3">
+                <Clock className="w-5 h-5" />
               </div>
               <span className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold block">
-                Instant Chat
+                Front Desk
               </span>
-              <a
-                href="https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20have%20an%20inquiry"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-base font-bold text-gray-900 hover:text-[#25D366] transition block"
-              >
-                WhatsApp Direct
-              </a>
-              <p className="text-xs text-gray-500">Live replies for flight & room queries</p>
+              <span className="text-base font-bold text-gray-900 block">
+                24/7 Reception Desk
+              </span>
+              <p className="text-xs text-gray-500">Always available for flight & room queries</p>
             </div>
 
             {/* Email */}

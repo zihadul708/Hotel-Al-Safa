@@ -994,14 +994,6 @@ export function BookingModal({
                   <Printer className="w-4 h-4 text-gold-400" />
                   <span>Print Voucher</span>
                 </button>
-                <a
-                  href={`https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20have%20confirmed%20booking%20${confirmedBooking.bookingCode}%20for%20${confirmedBooking.guestName}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs px-5 py-2.5 rounded-xl font-semibold transition"
-                >
-                  <span>Notify via WhatsApp</span>
-                </a>
                 <button
                   onClick={onClose}
                   className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-6 py-2.5 rounded-xl transition"

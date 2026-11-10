@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -836,15 +837,13 @@ export default function HomePage() {
                 >
                   Book Your Room Now
                 </button>
-                <a
-                  href="https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20want%20to%20book%20a%20room"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold px-7 py-3.5 rounded-full transition shadow-lg transform hover:scale-105"
+                <Link
+                  href="/contact"
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-semibold px-7 py-3.5 rounded-full transition shadow-lg transform hover:scale-105"
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>WhatsApp Instant Inquiry</span>
-                </a>
+                  <Phone className="w-5 h-5 text-gold-400" />
+                  <span>Contact Front Desk</span>
+                </Link>
               </div>
             </FadeIn>
           </div>

@@ -1,24 +1,29 @@
 "use client";
 
 import React from "react";
-import { MessageCircle, Phone } from "lucide-react";
+import { MessageCircle } from "lucide-react";
+import { getWhatsAppUrl } from "@/lib/hotel-config";
 
 export function FloatingActions({ onOpenBooking }: { onOpenBooking?: () => void }) {
+  const waUrl = getWhatsAppUrl("Hello Hotel Al Safa, I would like to book a room.");
+
   return (
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
-      {/* WhatsApp Action Pill */}
-      <a
-        href="https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20would%20like%20to%20book%20a%20room."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex items-center gap-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-[#25D366]/40 transition-all duration-300 transform hover:scale-105 active:scale-95"
-        aria-label="Chat on WhatsApp"
-      >
-        <MessageCircle className="w-6 h-6 fill-white" />
-        <span className="font-semibold text-sm hidden sm:inline-block pr-1">
-          Chat on WhatsApp
-        </span>
-      </a>
+      {/* WhatsApp Action Pill (only rendered when official WhatsApp number is configured) */}
+      {waUrl && (
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-[#25D366]/40 transition-all duration-300 transform hover:scale-105 active:scale-95"
+          aria-label="Chat on WhatsApp"
+        >
+          <MessageCircle className="w-6 h-6 fill-white" />
+          <span className="font-semibold text-sm hidden sm:inline-block pr-1">
+            Chat on WhatsApp
+          </span>
+        </a>
+      )}
 
       {/* Floating Quick Book Trigger for Mobile */}
       <button

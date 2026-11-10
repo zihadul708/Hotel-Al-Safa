@@ -164,15 +164,6 @@ export default function DiningPage() {
               >
                 Book Stay With Breakfast
               </button>
-              <a
-                href="https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20would%20like%20to%20inquire%20about%20the%20dining%20menu%20and%20room%20service"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-full text-xs sm:text-sm border border-white/20 transition flex items-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <span>Order via WhatsApp</span>
-              </a>
             </div>
           </div>
         </section>
@@ -275,14 +266,9 @@ export default function DiningPage() {
                   </div>
                 </div>
                 <div className="p-5 pt-0">
-                  <a
-                    href={`https://wa.me/8801894782070?text=Hello%20Hotel%20Al%20Safa,%20I%20would%20like%20to%20order%20${encodeURIComponent(item.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gold-500 hover:text-black py-2 rounded-xl transition"
-                  >
-                    <span>Order via Room Service</span>
-                  </a>
+                  <div className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 py-2 rounded-xl">
+                    <span>Dial #0 for 24h Room Service</span>
+                  </div>
                 </div>
               </div>
             ))}
