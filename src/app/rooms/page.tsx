@@ -61,8 +61,15 @@ export default function RoomsPage() {
     const safeRooms = Array.isArray(rooms) ? rooms : [];
     return safeRooms
       .filter((r) => {
-        if (selectedCategory !== "ALL" && r.category && r.category.toUpperCase() !== selectedCategory) {
-          return false;
+        if (selectedCategory !== "ALL") {
+          const name = r.name?.toUpperCase() || "";
+          const target = selectedCategory.toUpperCase();
+          if (target === "DELUXE" && !r.isAc) return false;
+          if (target === "ECONOMY" && r.isAc) return false;
+          if (target === "COUPLE" && !name.includes("COUPLE")) return false;
+          if (target === "TWIN" && !name.includes("TWIN")) return false;
+          if (target === "FAMILY" && !name.includes("FAMILY")) return false;
+          if (target === "SINGLE" && !name.includes("SINGLE")) return false;
         }
         if (acFilter === "AC" && !r.isAc) return false;
         if (acFilter === "NON_AC" && r.isAc) return false;
@@ -133,11 +140,12 @@ export default function RoomsPage() {
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 {[
                   { label: "All Rooms", value: "ALL" },
+                  { label: "Deluxe (AC)", value: "DELUXE" },
+                  { label: "Economy (Non-AC)", value: "ECONOMY" },
                   { label: "Couple", value: "COUPLE" },
-                  { label: "Deluxe & Twin", value: "DELUXE" },
-                  { label: "Family Suites", value: "FAMILY" },
-                  { label: "Presidential", value: "SUITE" },
-                  { label: "Economy", value: "ECONOMY" },
+                  { label: "Twin", value: "TWIN" },
+                  { label: "Family", value: "FAMILY" },
+                  { label: "Single", value: "SINGLE" },
                 ].map((cat) => (
                   <button
                     key={cat.value}

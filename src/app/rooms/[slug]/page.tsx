@@ -318,10 +318,20 @@ export default function RoomDetailPage() {
                   <span>Reserve This Room Online</span>
                 </button>
 
+                <a
+                  href={`https://wa.me/8801916944212?text=Hello%20Hotel%20Al%20Safa,%20I%20am%20interested%20in%20reserving%20the%20${encodeURIComponent(room.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold py-2.5 rounded-xl text-xs transition"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Inquire on WhatsApp (01916944212)</span>
+                </a>
+
                 <div className="border-t border-gray-800/80 pt-3 text-center text-[11px] text-gray-400">
                   <span>Front Desk Direct: </span>
-                  <a href="tel:+8801894782070" className="text-gold-400 font-medium hover:underline">
-                    +880 1894-782070
+                  <a href="tel:+8801916944212" className="text-gold-400 font-medium hover:underline">
+                    +880 1916-944212
                   </a>
                 </div>
               </div>

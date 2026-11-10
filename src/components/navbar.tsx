@@ -1,42 +1,54 @@
-"useclient";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Phone, Mail, MapPin, Clock, MessageCircle, Menu, X, Calendar, ShieldCheck } from "lucide-react";
+import { HOTEL_CONFIG, getWhatsAppUrl } from "@/lib/hotel-config";
 
 export function TopBar() {
+  const waUrl = getWhatsAppUrl("Hello Hotel Al Safa, I would like to inquire about room availability");
+
   return (
     <div className="bg-[#070b14] text-gray-300 text-xs border-b border-[#20293a] py-2 px-4">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[13px]">
           <a
-            href="tel:+8801894782070"
+            href={`tel:${HOTEL_CONFIG.phonePrimary}`}
             className="flex items-center gap-1.5 hover:text-gold-400 transition-colors"
           >
             <Phone className="w-3.5 h-3.5 text-gold-400" />
-            <span>+880 1894-782070 / +880 1711-000000</span>
+            <span>{HOTEL_CONFIG.phoneDisplay}</span>
           </a>
           <span className="hidden md:inline text-gray-600">|</span>
           <a
-            href="mailto:info@hotelalsafabd.com"
+            href={`mailto:${HOTEL_CONFIG.email}`}
             className="hidden sm:flex items-center gap-1.5 hover:text-gold-400 transition-colors"
           >
             <Mail className="w-3.5 h-3.5 text-gold-400" />
-            <span>info@hotelalsafabd.com</span>
+            <span>{HOTEL_CONFIG.email}</span>
           </a>
           <span className="hidden md:inline text-gray-600">|</span>
           <div className="flex items-center gap-1.5 text-gray-400">
             <MapPin className="w-3.5 h-3.5 text-gold-400" />
-            <span>Ashkona, Hajj Camp Road, Airport, Dhaka-1230</span>
+            <span>{HOTEL_CONFIG.address}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-gold-400/90 font-medium text-xs">
+          <div className="hidden lg:flex items-center gap-1.5 text-gold-400/90 font-medium text-xs">
             <Clock className="w-3.5 h-3.5" />
             <span>24/7 Front Desk & Airport Shuttle</span>
           </div>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors text-xs"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>WhatsApp: 01916944212</span>
+          </a>
         </div>
       </div>
     </div>

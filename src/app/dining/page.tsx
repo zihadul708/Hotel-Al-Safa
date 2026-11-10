@@ -286,11 +286,11 @@ export default function DiningPage() {
                 Room Service Is Just a Call Away
               </h3>
               <p className="text-xs text-gray-400 mt-1 max-w-lg">
-                Dial extension <span className="text-white font-bold">#0</span> from your in-room intercom or reach our front kitchen desk directly at +880 1894-782070.
+                Dial extension <span className="text-white font-bold">#0</span> from your in-room intercom or reach our front kitchen desk directly at +880 1916-944212.
               </p>
             </div>
             <a
-              href="tel:+8801894782070"
+              href="tel:+8801916944212"
               className="bg-gold-500 hover:bg-gold-400 text-black font-bold px-6 py-3 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-2 flex-shrink-0"
             >
               <Phone className="w-4 h-4" />

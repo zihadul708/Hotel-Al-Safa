@@ -176,14 +176,14 @@ export function Footer() {
             </div>
             <div className="flex items-center gap-2.5">
               <Phone className="w-4 h-4 text-gold-400 flex-shrink-0" />
-              <a href="tel:+8801894782070" className="hover:text-gold-400">
-                +880 1894-782070
+              <a href="tel:+8801916944212" className="hover:text-gold-400">
+                +880 1916-944212
               </a>
             </div>
             <div className="flex items-center gap-2.5">
               <Mail className="w-4 h-4 text-gold-400 flex-shrink-0" />
-              <a href="mailto:info@hotelalsafabd.com" className="hover:text-gold-400">
-                info@hotelalsafabd.com
+              <a href="mailto:hotelalsafainternational1@gmail.com" className="hover:text-gold-400">
+                hotelalsafainternational1@gmail.com
               </a>
             </div>
           </div>
@@ -198,6 +198,9 @@ export function Footer() {
               </span>
               <span className="bg-[#F7941D] text-white text-[11px] font-bold px-2.5 py-1 rounded">
                 Nagad
+              </span>
+              <span className="bg-[#006633] text-white text-[11px] font-bold px-2.5 py-1 rounded">
+                DBBL Bank
               </span>
               <span className="bg-[#1A1F71] text-white text-[11px] font-bold px-2.5 py-1 rounded">
                 VISA

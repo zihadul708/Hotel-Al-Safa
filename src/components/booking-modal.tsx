@@ -24,7 +24,11 @@ import {
   Tag,
   Check,
   ExternalLink,
+  Copy,
+  Landmark,
+  MessageCircle,
 } from "lucide-react";
+import { HOTEL_CONFIG } from "@/lib/hotel-config";
 
 export interface RoomOption {
   id: string;
@@ -75,9 +79,18 @@ export function BookingModal({
   const [specialRequests, setSpecialRequests] = useState("");
 
   // Payment
-  const [paymentMethod, setPaymentMethod] = useState<"BKASH" | "NAGAD" | "CARD" | "PAY_AT_HOTEL">("BKASH");
-  const [bkashNumber, setBkashNumber] = useState("");
-  const [bkashPin, setBkashPin] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"BKASH" | "NAGAD" | "BANK_TRANSFER" | "PAY_AT_HOTEL" | "CARD">("BKASH");
+  const [senderAccount, setSenderAccount] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = (text: string, key: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2500);
+    }
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -225,6 +238,14 @@ export function BookingModal({
     setErrorMsg("");
 
     try {
+      const paymentNoteParts: string[] = [];
+      if (senderAccount.trim()) paymentNoteParts.push(`Sender: ${senderAccount.trim()}`);
+      if (transactionId.trim()) paymentNoteParts.push(`TrxID/Ref: ${transactionId.trim()}`);
+      if (specialRequests.trim()) paymentNoteParts.push(`Note: ${specialRequests.trim()}`);
+      const combinedNotes = paymentNoteParts.length > 0 ? paymentNoteParts.join(" | ") : (specialRequests || null);
+
+      const isPrepaid = paymentMethod !== "PAY_AT_HOTEL";
+
       const payload = {
         roomTypeId: selectedRoomId,
         guestName,
@@ -237,10 +258,10 @@ export function BookingModal({
         adults,
         children,
         totalAmount: grandTotal,
-        paidAmount: paymentMethod === "PAY_AT_HOTEL" ? 0 : grandTotal,
-        paymentStatus: paymentMethod === "PAY_AT_HOTEL" ? "PENDING" : "PAID",
+        paidAmount: isPrepaid ? grandTotal : 0,
+        paymentStatus: isPrepaid ? "PAID" : "PENDING",
         paymentMethod,
-        specialRequests,
+        specialRequests: combinedNotes,
         airportTransfer,
         extraBed,
         breakfast,
@@ -648,148 +669,483 @@ export function BookingModal({
             </div>
           )}
 
-          {/* STEP 3: Payment Options & Simulation */}
+          {/* STEP 3: Payment Options & Method */}
           {step === 3 && (
             <div className="space-y-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">
-                Choose Payment Method
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* bKash */}
-                <div
-                  onClick={() => setPaymentMethod("BKASH")}
-                  className={`cursor-pointer p-4 rounded-xl border transition flex items-center justify-between ${
-                    paymentMethod === "BKASH"
-                      ? "border-[#E2136E] bg-[#E2136E]/15 shadow-md"
-                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-[#E2136E] text-white flex items-center justify-center font-bold text-xs">
-                      bK
-                    </span>
-                    <div>
-                      <div className="font-bold text-white text-sm">bKash Payment</div>
-                      <div className="text-xs text-gray-400">Direct mobile wallet checkout</div>
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === "BKASH"}
-                    onChange={() => setPaymentMethod("BKASH")}
-                    className="accent-[#E2136E]"
-                  />
-                </div>
-
-                {/* Nagad */}
-                <div
-                  onClick={() => setPaymentMethod("NAGAD")}
-                  className={`cursor-pointer p-4 rounded-xl border transition flex items-center justify-between ${
-                    paymentMethod === "NAGAD"
-                      ? "border-[#F7941D] bg-[#F7941D]/15 shadow-md"
-                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-[#F7941D] text-white flex items-center justify-center font-bold text-xs">
-                      Ng
-                    </span>
-                    <div>
-                      <div className="font-bold text-white text-sm">Nagad Payment</div>
-                      <div className="text-xs text-gray-400">Postal digital wallet PGW</div>
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === "NAGAD"}
-                    onChange={() => setPaymentMethod("NAGAD")}
-                    className="accent-[#F7941D]"
-                  />
-                </div>
-
-                {/* Visa / Master / SSLCommerz */}
-                <div
-                  onClick={() => setPaymentMethod("CARD")}
-                  className={`cursor-pointer p-4 rounded-xl border transition flex items-center justify-between ${
-                    paymentMethod === "CARD"
-                      ? "border-blue-500 bg-blue-500/15 shadow-md"
-                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-xs">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Cards (Visa / Master)</div>
-                      <div className="text-xs text-gray-400">SSLCommerz / Stripe gateway</div>
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === "CARD"}
-                    onChange={() => setPaymentMethod("CARD")}
-                    className="accent-blue-500"
-                  />
-                </div>
-
-                {/* Pay at Hotel */}
-                <div
-                  onClick={() => setPaymentMethod("PAY_AT_HOTEL")}
-                  className={`cursor-pointer p-4 rounded-xl border transition flex items-center justify-between ${
-                    paymentMethod === "PAY_AT_HOTEL"
-                      ? "border-emerald-500 bg-emerald-500/15 shadow-md"
-                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs">
-                      ৳
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Pay on Arrival (Cash)</div>
-                      <div className="text-xs text-gray-400">Pay cash/card during check-in</div>
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === "PAY_AT_HOTEL"}
-                    onChange={() => setPaymentMethod("PAY_AT_HOTEL")}
-                    className="accent-emerald-500"
-                  />
-                </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">
+                  Choose Payment Method
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Select your preferred method to complete or guarantee your reservation:
+                </p>
               </div>
 
-              {/* bKash Simulated Prompt */}
-              {paymentMethod === "BKASH" && (
-                <div className="p-4 bg-[#E2136E]/10 border border-[#E2136E]/40 rounded-xl space-y-3">
-                  <div className="flex items-center gap-2 text-[#E2136E] font-bold text-sm">
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>bKash Instant Gateway Simulation</span>
+              {/* 5 Payment Methods */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {/* bKash */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("BKASH")}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                    paymentMethod === "BKASH"
+                      ? "border-[#E2136E] bg-[#E2136E]/15 shadow-md shadow-[#E2136E]/10"
+                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="w-7 h-7 rounded-lg bg-[#E2136E] text-white flex items-center justify-center font-bold text-xs">
+                      bK
+                    </span>
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      paymentMethod === "BKASH" ? "border-[#E2136E] bg-[#E2136E]" : "border-gray-600"
+                    }`}>
+                      {paymentMethod === "BKASH" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-300">
-                    Enter your bKash personal wallet number to simulate instant tokenized checkout verification:
-                  </p>
+                  <div>
+                    <div className="font-bold text-white text-xs sm:text-sm">bKash</div>
+                    <div className="text-[11px] text-gray-400">Payment & Personal</div>
+                  </div>
+                </button>
+
+                {/* Nagad */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("NAGAD")}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                    paymentMethod === "NAGAD"
+                      ? "border-[#F7941D] bg-[#F7941D]/15 shadow-md shadow-[#F7941D]/10"
+                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="w-7 h-7 rounded-lg bg-[#F7941D] text-white flex items-center justify-center font-bold text-xs">
+                      Ng
+                    </span>
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      paymentMethod === "NAGAD" ? "border-[#F7941D] bg-[#F7941D]" : "border-gray-600"
+                    }`}>
+                      {paymentMethod === "NAGAD" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs sm:text-sm">Nagad</div>
+                    <div className="text-[11px] text-gray-400">Personal (01615383839)</div>
+                  </div>
+                </button>
+
+                {/* Bank Transfer (DBBL) */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("BANK_TRANSFER")}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                    paymentMethod === "BANK_TRANSFER"
+                      ? "border-emerald-500 bg-emerald-500/15 shadow-md shadow-emerald-500/10"
+                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs">
+                      <Landmark className="w-4 h-4" />
+                    </span>
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      paymentMethod === "BANK_TRANSFER" ? "border-emerald-500 bg-emerald-500" : "border-gray-600"
+                    }`}>
+                      {paymentMethod === "BANK_TRANSFER" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs sm:text-sm">DBBL Bank</div>
+                    <div className="text-[11px] text-gray-400">Transfer / Deposit</div>
+                  </div>
+                </button>
+
+                {/* Pay at Hotel */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("PAY_AT_HOTEL")}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                    paymentMethod === "PAY_AT_HOTEL"
+                      ? "border-gold-500 bg-gold-500/15 shadow-md shadow-gold-500/10"
+                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="w-7 h-7 rounded-lg bg-gold-600 text-black flex items-center justify-center font-bold text-xs">
+                      ৳
+                    </span>
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      paymentMethod === "PAY_AT_HOTEL" ? "border-gold-500 bg-gold-500" : "border-gray-600"
+                    }`}>
+                      {paymentMethod === "PAY_AT_HOTEL" && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs sm:text-sm">Pay on Arrival</div>
+                    <div className="text-[11px] text-gray-400">Cash / Card at Desk</div>
+                  </div>
+                </button>
+
+                {/* Cards (Visa/Master) */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("CARD")}
+                  className={`col-span-2 sm:col-span-1 p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                    paymentMethod === "CARD"
+                      ? "border-blue-500 bg-blue-500/15 shadow-md shadow-blue-500/10"
+                      : "border-gray-800 bg-[#121c31] hover:border-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="w-7 h-7 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-xs">
+                      <CreditCard className="w-4 h-4" />
+                    </span>
+                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                      paymentMethod === "CARD" ? "border-blue-500 bg-blue-500" : "border-gray-600"
+                    }`}>
+                      {paymentMethod === "CARD" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-white text-xs sm:text-sm">Credit / Debit Card</div>
+                    <div className="text-[11px] text-gray-400">Visa / Master / POS</div>
+                  </div>
+                </button>
+              </div>
+
+              {/* bKash Payment Details */}
+              {paymentMethod === "BKASH" && (
+                <div className="p-4 bg-[#E2136E]/10 border border-[#E2136E]/40 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#E2136E] font-bold text-sm">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Official bKash Payment Numbers</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400">Instant verification</span>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="tel"
-                      placeholder="01XXXXXXXXX"
-                      value={bkashNumber}
-                      onChange={(e) => setBkashNumber(e.target.value)}
-                      className="bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-                    />
-                    <input
-                      type="password"
-                      placeholder="PIN (Simulated e.g. 12345)"
-                      value={bkashPin}
-                      onChange={(e) => setBkashPin(e.target.value)}
-                      className="bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-                    />
+                    {/* Option 1: bKash Payment (Merchant) */}
+                    <div className="bg-[#141f36] border border-gray-700/80 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#E2136E]/20 text-[#E2136E] border border-[#E2136E]/40">
+                          bKash (Payment)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(HOTEL_CONFIG.payments.bkashMerchant.number, "bkash-merchant")}
+                          className="flex items-center gap-1 text-[11px] text-gold-400 hover:text-gold-300 font-medium"
+                        >
+                          {copiedKey === "bkash-merchant" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400 font-bold">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="text-lg font-mono font-bold text-white tracking-wider">
+                        {HOTEL_CONFIG.payments.bkashMerchant.number}
+                      </div>
+                      <div className="text-[11px] text-gray-300 space-y-0.5 border-t border-gray-700/60 pt-2">
+                        <p>1. Open bKash App ➔ <strong className="text-white">Make Payment</strong></p>
+                        <p>2. Enter Number: <strong className="text-gold-400 font-mono">01615383839</strong></p>
+                        <p>3. Enter Amount: <strong className="text-gold-400">৳{grandTotal.toLocaleString()}</strong></p>
+                        <p>4. Reference: <strong className="text-white">Al Safa</strong></p>
+                      </div>
+                    </div>
+
+                    {/* Option 2: bKash (Personal) */}
+                    <div className="bg-[#141f36] border border-gray-700/80 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                          bKash (Personal)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(HOTEL_CONFIG.payments.bkashPersonal.number, "bkash-personal")}
+                          className="flex items-center gap-1 text-[11px] text-gold-400 hover:text-gold-300 font-medium"
+                        >
+                          {copiedKey === "bkash-personal" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400 font-bold">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="text-lg font-mono font-bold text-white tracking-wider">
+                        {HOTEL_CONFIG.payments.bkashPersonal.number}
+                      </div>
+                      <div className="text-[11px] text-gray-300 space-y-0.5 border-t border-gray-700/60 pt-2">
+                        <p>1. Open bKash App ➔ <strong className="text-white">Send Money</strong></p>
+                        <p>2. Enter Number: <strong className="text-gold-400 font-mono">01965900482</strong></p>
+                        <p>3. Enter Amount: <strong className="text-gold-400">৳{grandTotal.toLocaleString()}</strong></p>
+                        <p>4. Enter your PIN to confirm</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Verification fields */}
+                  <div className="border-t border-[#E2136E]/30 pt-3">
+                    <label className="block text-xs font-semibold text-gray-200 mb-1.5">
+                      Payment Verification Details:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="tel"
+                          placeholder="Your Sender bKash Number (e.g. 017XXXXXXXX)"
+                          value={senderAccount}
+                          onChange={(e) => setSenderAccount(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#E2136E]"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Transaction ID / TrxID (e.g. 9K48FA2B)"
+                          value={transactionId}
+                          onChange={(e) => setTransactionId(e.target.value.toUpperCase())}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white uppercase placeholder:normal-case placeholder:text-gray-500 focus:outline-none focus:border-[#E2136E]"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1.5">
+                      Provide your sender bKash number and TrxID for swift voucher validation by our front desk.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Nagad Payment Details */}
+              {paymentMethod === "NAGAD" && (
+                <div className="p-4 bg-[#F7941D]/10 border border-[#F7941D]/40 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#F7941D] font-bold text-sm">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Official Nagad Account</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400">Postal digital wallet</span>
+                  </div>
+
+                  <div className="bg-[#141f36] border border-gray-700/80 rounded-xl p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-[#F7941D]/20 text-[#F7941D] border border-[#F7941D]/40">
+                        Nagad (Personal)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(HOTEL_CONFIG.payments.nagadPersonal.number, "nagad")}
+                        className="flex items-center gap-1 text-[11px] text-gold-400 hover:text-gold-300 font-medium"
+                      >
+                        {copiedKey === "nagad" ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400 font-bold">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div className="text-xl font-mono font-bold text-white tracking-wider">
+                      {HOTEL_CONFIG.payments.nagadPersonal.number}
+                    </div>
+                    <div className="text-[11px] text-gray-300 space-y-0.5 border-t border-gray-700/60 pt-2">
+                      <p>1. Open Nagad App or dial <strong className="text-gold-400 font-mono">*167#</strong></p>
+                      <p>2. Select <strong className="text-white">Send Money</strong></p>
+                      <p>3. Enter Number: <strong className="text-gold-400 font-mono">01615383839</strong></p>
+                      <p>4. Enter Amount: <strong className="text-gold-400">৳{grandTotal.toLocaleString()}</strong></p>
+                      <p>5. Reference: <strong className="text-white">Al Safa</strong></p>
+                    </div>
+                  </div>
+
+                  {/* Verification fields */}
+                  <div className="border-t border-[#F7941D]/30 pt-3">
+                    <label className="block text-xs font-semibold text-gray-200 mb-1.5">
+                      Payment Verification Details:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="tel"
+                          placeholder="Your Sender Nagad Number (e.g. 01XXXXXXXXX)"
+                          value={senderAccount}
+                          onChange={(e) => setSenderAccount(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-[#F7941D]"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Nagad Transaction ID / TrxID (e.g. 7H29BV3M)"
+                          value={transactionId}
+                          onChange={(e) => setTransactionId(e.target.value.toUpperCase())}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white uppercase placeholder:normal-case placeholder:text-gray-500 focus:outline-none focus:border-[#F7941D]"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1.5">
+                      Provide your sender Nagad number and TrxID for instant booking confirmation.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Bank Transfer (Dutch-Bangla Bank Limited) */}
+              {paymentMethod === "BANK_TRANSFER" && (
+                <div className="p-4 bg-emerald-950/20 border border-emerald-500/40 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                      <Landmark className="w-4 h-4" />
+                      <span>Official DBBL Bank Account Details</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700">
+                      Payable at any Branch
+                    </span>
+                  </div>
+
+                  {/* Official Cheque Leaf / Bank Box */}
+                  <div className="bg-[#141f36] border border-emerald-500/30 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-gray-700/60 pb-2">
+                      <div className="text-xs text-gray-400">
+                        Bank Name: <strong className="text-white">{HOTEL_CONFIG.payments.bank.bankName}</strong>
+                      </div>
+                      <span className="text-[11px] text-emerald-400 font-medium">NPSB / BEFTN / NexusPay</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-gray-400 block text-[11px]">Account Title / Name:</span>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="font-bold text-white font-mono tracking-wide">{HOTEL_CONFIG.payments.bank.accountName}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(HOTEL_CONFIG.payments.bank.accountName, "bank-name")}
+                            className="text-gold-400 hover:text-gold-300 ml-2"
+                          >
+                            {copiedKey === "bank-name" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-400 block text-[11px]">Account Number:</span>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="font-bold text-gold-400 font-mono text-base tracking-wider">{HOTEL_CONFIG.payments.bank.accountNumber}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(HOTEL_CONFIG.payments.bank.accountNumber, "bank-acc")}
+                            className="text-gold-400 hover:text-gold-300 ml-2"
+                          >
+                            {copiedKey === "bank-acc" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-400 block text-[11px]">Routing / Branch Code:</span>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="font-bold text-white font-mono">{HOTEL_CONFIG.payments.bank.routingCode}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(HOTEL_CONFIG.payments.bank.routingCode, "bank-routing")}
+                            className="text-gold-400 hover:text-gold-300 ml-2"
+                          >
+                            {copiedKey === "bank-routing" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-400 block text-[11px]">Branch:</span>
+                        <span className="font-semibold text-white mt-0.5 block">{HOTEL_CONFIG.payments.bank.branch}</span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-700/60 pt-2 text-[11px] text-gray-300">
+                      💡 <strong className="text-white">How to Transfer:</strong> Use your banking app (City Touch, EBL Skybeauty, NexusPay, etc.) via <strong className="text-gold-400">NPSB Instant Transfer</strong> or deposit cash at any DBBL branch counters nationwide.
+                    </div>
+                  </div>
+
+                  {/* Verification fields */}
+                  <div className="border-t border-emerald-500/30 pt-3">
+                    <label className="block text-xs font-semibold text-gray-200 mb-1.5">
+                      Deposit / Transfer Proof Details:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Depositor Name & Bank (e.g. Tanvir - City Touch)"
+                          value={senderAccount}
+                          onChange={(e) => setSenderAccount(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Deposit Slip / Transaction Ref / TrxID"
+                          value={transactionId}
+                          onChange={(e) => setTransactionId(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1.5">
+                      You may also send a snapshot of your deposit slip to our official WhatsApp: <strong className="text-gold-400 font-mono">01916944212</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Pay at Hotel Reception */}
+              {paymentMethod === "PAY_AT_HOTEL" && (
+                <div className="p-4 bg-gold-950/20 border border-gold-500/40 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-gold-400 font-bold text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
+                    <span>Pay at Hotel Al Safa Reception</span>
+                  </div>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    No advance payment is required right now. You can settle the full amount (<strong>৳{grandTotal.toLocaleString()} BDT</strong>) in Cash or by Card during check-in at our front desk located at <strong>Mili Super Tower-2, Ashkona, Dhaka</strong>.
+                  </p>
+                  <div className="bg-[#141f36] p-3 rounded-xl border border-gray-700 text-[11px] text-gray-300 space-y-1">
+                    <p>• Accepted currencies: BDT (Bangladeshi Taka), USD, SAR, AED, EUR, GBP, MYR.</p>
+                    <p>• Credit/Debit card POS terminal is operational 24/7 at the reception.</p>
+                    <p>• Free cancellation up to 24 hours prior to check-in.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Cards (Visa / Mastercard) */}
+              {paymentMethod === "CARD" && (
+                <div className="p-4 bg-blue-950/20 border border-blue-500/40 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                    <CreditCard className="w-4 h-4" />
+                    <span>Card Payment (POS / Secure Checkout)</span>
+                  </div>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    We accept all major local and international cards: <strong>Visa, MasterCard, American Express, UnionPay, and DBBL Nexus</strong>.
+                  </p>
+                  <div className="bg-[#141f36] p-3 rounded-xl border border-gray-700 text-[11px] text-gray-300 space-y-1">
+                    <p>• You can tap/swipe your card at our front desk POS terminal on arrival.</p>
+                    <p>• To pay online now via payment gateway link, click confirm and our desk will text you a secure payment link on WhatsApp (01916944212).</p>
                   </div>
                 </div>
               )}
@@ -967,18 +1323,52 @@ export function BookingModal({
                   </div>
                   <div>
                     <span className="text-gray-500 block">Payment Method</span>
-                    <span className="text-white font-medium">{confirmedBooking.paymentMethod}</span>
+                    <span className="text-white font-medium">
+                      {confirmedBooking.paymentMethod === "BKASH"
+                        ? "bKash (Mobile Wallet)"
+                        : confirmedBooking.paymentMethod === "NAGAD"
+                        ? "Nagad (Digital Wallet)"
+                        : confirmedBooking.paymentMethod === "BANK_TRANSFER"
+                        ? "DBBL Bank Transfer"
+                        : confirmedBooking.paymentMethod === "CARD"
+                        ? "Credit / Debit Card"
+                        : "Pay on Arrival (Cash/POS)"}
+                    </span>
                   </div>
+                  {senderAccount && (
+                    <div>
+                      <span className="text-gray-500 block">Sender Account/No</span>
+                      <span className="text-white font-medium font-mono">{senderAccount}</span>
+                    </div>
+                  )}
+                  {transactionId && (
+                    <div>
+                      <span className="text-gray-500 block">TrxID / Reference</span>
+                      <span className="text-gold-400 font-medium font-mono">{transactionId}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-gray-800/80 pt-3 text-[11px] text-gray-400 space-y-1">
                   <p>📍 Location: Mili Super Tower-2, Ashkona, Airport Road, Dhaka-1230</p>
-                  <p>📞 24/7 Front Desk: +880 1894-782070</p>
+                  <p>📞 24/7 Front Desk: +880 1916-944212</p>
+                  <p>✉️ Email: {HOTEL_CONFIG.email}</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href={`https://wa.me/8801916944212?text=${encodeURIComponent(
+                    `Hello Hotel Al Safa, I have made a reservation!\n\nBooking Code: ${confirmedBooking.bookingCode}\nGuest Name: ${confirmedBooking.guestName}\nRoom: ${confirmedBooking.roomType?.name || ""}\nCheck-in: ${new Date(confirmedBooking.checkIn).toLocaleDateString()}\nTotal Amount: ৳${confirmedBooking.totalAmount}\nPayment Method: ${confirmedBooking.paymentMethod}${senderAccount ? `\nSender: ${senderAccount}` : ""}${transactionId ? `\nTrxID/Ref: ${transactionId}` : ""}\n\nPlease verify and confirm.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs px-5 py-2.5 rounded-xl font-bold shadow-md transition hover:scale-105"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Send Voucher to WhatsApp</span>
+                </a>
                 <Link
                   href={`/booking/${confirmedBooking.bookingCode}`}
                   target="_blank"

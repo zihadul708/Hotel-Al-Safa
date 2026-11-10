@@ -95,7 +95,17 @@ export default function HomePage() {
   const filteredRooms =
     activeCategory === "ALL"
       ? safeRooms
-      : safeRooms.filter((r) => r.category && r.category.toUpperCase() === activeCategory.toUpperCase());
+      : safeRooms.filter((r) => {
+          const cat = r.category?.toUpperCase() || "";
+          const name = r.name?.toUpperCase() || "";
+          const target = activeCategory.toUpperCase();
+          if (target === "DELUXE") return r.isAc;
+          if (target === "ECONOMY") return !r.isAc;
+          if (target === "COUPLE") return name.includes("COUPLE") || cat.includes("COUPLE");
+          if (target === "FAMILY") return name.includes("FAMILY") || cat.includes("FAMILY");
+          if (target === "SINGLE") return name.includes("SINGLE") || cat.includes("SINGLE");
+          return cat === target;
+        });
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-gray-900 flex flex-col font-sans selection:bg-gold-400 selection:text-black">
@@ -361,10 +371,11 @@ export default function HomePage() {
                 <div className="flex flex-wrap justify-center gap-2 pt-4">
                   {[
                     { label: "All Rooms", value: "ALL" },
-                    { label: "Couple Rooms", value: "COUPLE" },
-                    { label: "Deluxe & Twin", value: "DELUXE" },
-                    { label: "Family Suites", value: "FAMILY" },
-                    { label: "Presidential", value: "SUITE" },
+                    { label: "Deluxe (AC)", value: "DELUXE" },
+                    { label: "Economy (Non-AC)", value: "ECONOMY" },
+                    { label: "Couple", value: "COUPLE" },
+                    { label: "Family", value: "FAMILY" },
+                    { label: "Single", value: "SINGLE" },
                   ].map((tab) => (
                     <button
                       key={tab.value}
@@ -602,7 +613,7 @@ export default function HomePage() {
                       Book Stay with Dining
                     </button>
                     <a
-                      href="tel:+8801894782070"
+                      href="tel:+8801916944212"
                       className="flex items-center gap-2 border border-gray-700 hover:border-gold-400 text-gray-300 hover:text-white px-5 py-3 rounded-xl transition text-sm"
                     >
                       <Phone className="w-4 h-4 text-gold-400" />
