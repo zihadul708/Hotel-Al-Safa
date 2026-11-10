@@ -198,7 +198,7 @@ export default function ContactPage() {
                 Physical Location
               </span>
               <p className="text-xs font-bold text-gray-900 leading-snug">
-                Haji Komoruddin Tower, Ashkona, Airport Road, Dhaka-1230
+                Mili Super Tower-2, Ashkona, Airport Road, Dhaka-1230
               </p>
               <p className="text-xs text-gold-600 font-medium">Opposite Ashkona Hajj Camp</p>
             </div>
@@ -364,7 +364,7 @@ export default function ContactPage() {
                   <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                     <span className="font-bold text-gray-900 block">✈️ From Hazrat Shahjalal Airport (5 Mins)</span>
                     <p className="mt-0.5">
-                      Exit Airport Roundabout towards Ashkona Hajj Camp Road. Our hotel is located at Haji Komoruddin Tower on the main road.
+                      Exit Airport Roundabout towards Ashkona Hajj Camp Road. Our hotel is located at Mili Super Tower-2 on the main road.
                     </p>
                   </div>
 
@@ -378,7 +378,7 @@ export default function ContactPage() {
                   <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                     <span className="font-bold text-gray-900 block">🚆 From Airport Railway Station (8 Mins)</span>
                     <p className="mt-0.5">
-                      Take a direct rickshaw or taxi via Kawlar-Ashkona connecting link directly to Haji Komoruddin Tower.
+                      Take a direct rickshaw or taxi via Kawlar-Ashkona connecting link directly to Mili Super Tower-2.
                     </p>
                   </div>
                 </div>

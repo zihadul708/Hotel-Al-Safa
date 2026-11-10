@@ -172,7 +172,7 @@ export function Footer() {
           <div className="space-y-2.5 text-sm text-gray-400">
             <div className="flex items-start gap-2.5">
               <MapPin className="w-4 h-4 text-gold-400 mt-0.5 flex-shrink-0" />
-              <span>Haji Komoruddin Tower, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230</span>
+              <span>Mili Super Tower-2, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230</span>
             </div>
             <div className="flex items-center gap-2.5">
               <Phone className="w-4 h-4 text-gold-400 flex-shrink-0" />
@@ -217,17 +217,6 @@ export function Footer() {
       <div className="bg-[#04070d] py-5 px-4 border-t border-gray-900 text-xs text-gray-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <p>© {new Date().getFullYear()} Hotel Al Safa Dhaka. All Rights Reserved.</p>
-          <p className="text-gray-400">
-            Engineered & Designed by{" "}
-            <a
-              href="https://www.crafix.tech/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gold-400 hover:underline font-semibold"
-            >
-              Crafix Tech
-            </a>
-          </p>
         </div>
       </div>
     </footer>

@@ -972,7 +972,7 @@ export function BookingModal({
                 </div>
 
                 <div className="border-t border-gray-800/80 pt-3 text-[11px] text-gray-400 space-y-1">
-                  <p>📍 Location: Haji Komoruddin Tower, Ashkona, Airport Road, Dhaka-1230</p>
+                  <p>📍 Location: Mili Super Tower-2, Ashkona, Airport Road, Dhaka-1230</p>
                   <p>📞 24/7 Front Desk: +880 1894-782070</p>
                 </div>
               </div>

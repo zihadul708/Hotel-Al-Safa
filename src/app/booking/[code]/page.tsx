@@ -355,7 +355,7 @@ export default function BookingVoucherPage() {
 
           {/* Footer Info */}
           <div className="border-t border-gray-800/80 pt-4 flex flex-col sm:flex-row justify-between items-center text-[11px] text-gray-500 gap-2 print:border-gray-400">
-            <span>Hotel Al Safa • Haji Komoruddin Tower, Ashkona, Dhaka-1230</span>
+            <span>Hotel Al Safa • Mili Super Tower-2, Ashkona, Dhaka-1230</span>
             <span>Issued: {new Date(booking.createdAt).toLocaleDateString()}</span>
           </div>
         </div>

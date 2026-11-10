@@ -628,7 +628,7 @@ export default function HomePage() {
                   Connected to Dhaka's Major Gateways
                 </h2>
                 <p className="text-gray-600 text-sm">
-                  Situated in Ashkona (Haji Komoruddin Tower), right next to the airport terminal and Hajj camp.
+                  Situated in Ashkona (Mili Super Tower-2), right next to the airport terminal and Hajj camp.
                 </p>
               </div>
             </FadeIn>
@@ -714,7 +714,7 @@ export default function HomePage() {
                         Hotel Al Safa Location Map
                       </h3>
                       <p className="text-xs text-gray-500">
-                        Haji Komoruddin Tower, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230
+                        Mili Super Tower-2, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230
                       </p>
                     </div>
                     <a

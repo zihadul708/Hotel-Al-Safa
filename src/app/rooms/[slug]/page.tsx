@@ -343,7 +343,7 @@ export default function RoomDetailPage() {
                   <span>Prime Transit Proximity</span>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  Haji Komoruddin Tower, Ashkona, Airport Road, Dhaka-1230.
+                  Mili Super Tower-2, Ashkona, Airport Road, Dhaka-1230.
                 </p>
                 <div className="pt-1 flex gap-2">
                   <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[11px]">

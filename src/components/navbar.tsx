@@ -46,12 +46,6 @@ export function TopBar() {
             <MessageCircle className="w-3.5 h-3.5" />
             <span>WhatsApp Direct</span>
           </a>
-          <Link
-            href="/admin"
-            className="text-gray-400 hover:text-gold-400 text-xs px-2 py-0.5 rounded border border-gray-700 hover:border-gold-500 transition-colors"
-          >
-            Staff Portal
-          </Link>
         </div>
       </div>
     </div>
