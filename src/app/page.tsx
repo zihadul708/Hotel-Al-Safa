@@ -182,7 +182,7 @@ export default function HomePage() {
               className="text-sm sm:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
             >
               Designed for international transit travelers, Hajj & Umrah pilgrims, and visiting
-              executives. Experience soundproof AC suites, 24/7 free airport shuttle, and authentic
+              executives. Experience soundproof AC suites, peaceful ambiance, and authentic
               hospitality.
             </motion.p>
 
@@ -238,12 +238,17 @@ export default function HomePage() {
                         if (val !== "any") setSelectedRoomSlug(val);
                       }}
                     >
-                      <option value="any">2 Guests (Couple / Deluxe)</option>
-                      <option value="couple-ac-deluxe">Couple AC Deluxe (৳3,500)</option>
-                      <option value="couple-non-ac-economy">Couple Economy Non-AC (৳1,400)</option>
-                      <option value="super-deluxe-twin">Super Deluxe Twin (৳4,800)</option>
-                      <option value="executive-family-suite">Royal Family Suite (৳6,500)</option>
-                      <option value="presidential-al-safa-suite">Presidential Suite (৳9,500)</option>
+                      <option value="any">Select Room Category</option>
+                      <option value="deluxe-single-ac">Deluxe (Single) AC - ৳2,000</option>
+                      <option value="deluxe-couple-ac">Deluxe (Couple) AC - ৳2,500</option>
+                      <option value="deluxe-twin-ac">Deluxe (Twin) AC - ৳3,000</option>
+                      <option value="deluxe-double-ac">Deluxe (Double) AC - ৳3,500</option>
+                      <option value="deluxe-family-ac">Deluxe (Family) AC - ৳4,000</option>
+                      <option value="economy-single-non-ac">Economy (Single) Non-AC - ৳1,500</option>
+                      <option value="economy-couple-non-ac">Economy (Couple) Non-AC - ৳2,000</option>
+                      <option value="economy-twin-non-ac">Economy (Twin) Non-AC - ৳2,500</option>
+                      <option value="economy-double-non-ac">Economy (Double) Non-AC - ৳2,500</option>
+                      <option value="economy-family-non-ac">Economy (Family) Non-AC - ৳3,000</option>
                     </select>
                   </div>
 
@@ -263,11 +268,11 @@ export default function HomePage() {
                 <div className="mt-4 pt-3 border-t border-gray-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Free Airport Pickup</span>
+                    <span>24/7 Front Desk Reception</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Instant bKash / Nagad Confirmation</span>
+                    <span>Instant bKash, Nagad & DBBL Bank</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
@@ -309,10 +314,10 @@ export default function HomePage() {
                     <Clock className="w-6 h-6" />
                   </div>
                   <h3 className="font-serif font-bold text-lg text-gray-900 mb-1">
-                    24/7 Front Desk & Shuttle
+                    24/7 Front Desk & Reception
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Midnight or early morning arrivals are warmly received anytime. 24-hour room service and security.
+                    Midnight or early morning arrivals are warmly received anytime. 24-hour concierge assistance and secure premises.
                   </p>
                 </div>
               </StaggerItem>
@@ -320,13 +325,13 @@ export default function HomePage() {
               <StaggerItem>
                 <div className="p-6 rounded-2xl bg-[#fdfbf7] border border-gray-200/80 shadow-sm hover:shadow-lg transition-all transform hover:-translate-y-1">
                   <div className="w-12 h-12 rounded-xl bg-gold-400/15 border border-gold-400/40 flex items-center justify-center text-gold-600 mb-4">
-                    <UtensilsCrossed className="w-6 h-6" />
+                    <Wifi className="w-6 h-6" />
                   </div>
                   <h3 className="font-serif font-bold text-lg text-gray-900 mb-1">
-                    Halal Dining & Cafe
+                    High-Speed Wi-Fi & Power
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    On-site kitchen preparing fresh local dishes, Desi breakfast, Chinese, and continental menu options.
+                    Continuous generator power backup and high-speed fiber Wi-Fi throughout all rooms and guest corridors.
                   </p>
                 </div>
               </StaggerItem>
@@ -523,12 +528,12 @@ export default function HomePage() {
 
             <StaggerGroup className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
-                { title: "Airport Pickup", desc: "Private van & car shuttle", icon: Plane },
                 { title: "24/7 Hot Water", desc: "Geyser in all en-suites", icon: Clock },
                 { title: "High-Speed Wi-Fi", desc: "Dedicated high-bandwidth", icon: Wifi },
-                { title: "Halal Restaurant", desc: "Desi, Chinese & Continental", icon: Coffee },
                 { title: "Power Generator", desc: "100% continuous backup", icon: Sparkles },
-                { title: "Luggage Cloak", desc: "Safe keeping for pilgrims", icon: ShieldCheck },
+                { title: "Soundproof Rooms", desc: "Quiet & restful comfort", icon: ShieldCheck },
+                { title: "Luggage Cloak", desc: "Safe keeping for guests", icon: ShieldCheck },
+                { title: "24/7 Front Desk", desc: "Attentive reception desk", icon: Clock },
               ].map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -544,85 +549,6 @@ export default function HomePage() {
                 );
               })}
             </StaggerGroup>
-          </div>
-        </section>
-
-        {/* ========================================================= */}
-        {/* DINING & CULINARY SHOWCASE (SCROLL ANIMATED)              */}
-        {/* ========================================================= */}
-        <section id="dining" className="py-20 bg-[#0d1525] text-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Left Images Collage */}
-              <FadeIn direction="right">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative h-64 rounded-2xl overflow-hidden border border-gold-500/30 shadow-2xl">
-                    <Image
-                      src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
-                      alt="Delicious Dining"
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-700"
-                    />
-                  </div>
-                  <div className="relative h-64 rounded-2xl overflow-hidden border border-gold-500/30 mt-6 shadow-2xl">
-                    <Image
-                      src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
-                      alt="Al Safa Dining Area"
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-700"
-                    />
-                  </div>
-                </div>
-              </FadeIn>
-
-              {/* Right Content */}
-              <FadeIn direction="left">
-                <div className="space-y-6">
-                  <div className="inline-block text-xs uppercase tracking-widest text-gold-400 font-bold">
-                    Gourmet & Room Service
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white leading-tight">
-                    Savor Fresh, 100% Halal Culinary Delights
-                  </h2>
-                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
-                    Our in-house chef prepares wholesome, hot meals around the clock. Whether you crave
-                    a fragrant Dhaka Kacchi Biryani, light soup, fresh breakfast parathas with eggs and tea,
-                    or international transit snacks, our kitchen serves direct to your room.
-                  </p>
-
-                  <div className="space-y-3 pt-2 text-sm text-gray-300">
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-gold-400 flex-shrink-0" />
-                      <span>Complimentary Morning Breakfast Buffets for Executive Guests</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-gold-400 flex-shrink-0" />
-                      <span>24-Hour Hot Tea, Coffee & Mineral Water Room Delivery</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="w-2 h-2 rounded-full bg-gold-400 flex-shrink-0" />
-                      <span>Hygienic, Dietary & Pilgrim Friendly Meal Plans</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex flex-wrap gap-4">
-                    <button
-                      onClick={() => handleOpenBooking()}
-                      className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105"
-                    >
-                      Book Stay with Dining
-                    </button>
-                    <a
-                      href="tel:+8801916944212"
-                      className="flex items-center gap-2 border border-gray-700 hover:border-gold-400 text-gray-300 hover:text-white px-5 py-3 rounded-xl transition text-sm"
-                    >
-                      <Phone className="w-4 h-4 text-gold-400" />
-                      <span>Call Room Service</span>
-                    </a>
-                  </div>
-                </div>
-              </FadeIn>
-            </div>
           </div>
         </section>
 

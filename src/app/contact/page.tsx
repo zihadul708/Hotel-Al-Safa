@@ -9,13 +9,8 @@ import {
   MapPin,
   Clock,
   MessageCircle,
-  Send,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
   ChevronDown,
   Navigation,
-  Plane,
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -25,57 +20,8 @@ import { BookingModal } from "@/components/booking-modal";
 export default function ContactPage() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
-  // Form state
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("Airport Shuttle Inquiry");
-  const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
-
-    if (!name.trim() || !phone.trim() || !message.trim()) {
-      setErrorMsg("Please fill in your name, phone number, and inquiry message.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/inquiries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || "guest@hotelalsafabd.com",
-          subject,
-          message: message.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to deliver your message. Please try calling directly.");
-      }
-
-      setSuccess(true);
-      setName("");
-      setPhone("");
-      setEmail("");
-      setMessage("");
-    } catch (err: any) {
-      setErrorMsg(err.message || "An error occurred.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const faqs = [
     {
@@ -83,12 +29,12 @@ export default function ContactPage() {
       a: "We are located just 5 minutes (approx. 2.1 km) from Dhaka Airport Terminal 1 & 2 via Airport-Ashkona Road, allowing quick arrivals without entering congested central Dhaka traffic.",
     },
     {
-      q: "Do you offer airport pick-up for midnight or delayed flights?",
-      a: "Yes! Our 24/7 dedicated airport shuttle operates around the clock. When making your direct reservation, tick the 'Airport Shuttle' add-on and mention your flight number. Our driver will track your flight and meet you right at the arrival terminal.",
+      q: "Is the front desk open 24/7 for late-night arrivals?",
+      a: "Yes! Our reception is staffed 24 hours a day, 7 days a week. Midnight arrivals and delayed flights are welcomed warmly at any hour.",
     },
     {
       q: "What payment methods are supported for reservations?",
-      a: "We accept bKash, Nagad, Visa, Mastercard, SSLCommerz, and Pay at Hotel (Cash on Arrival at reception).",
+      a: "We accept bKash (Payment: 01615383839, Personal: 01965900482), Nagad (Personal: 01615383839), Dutch-Bangla Bank Limited (DBBL Account: 2021100017423), Cards (Visa / Mastercard), and Pay at Hotel (Cash on Arrival at front desk).",
     },
     {
       q: "What are your standard check-in and check-out timings?",
@@ -205,134 +151,89 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* Form & Map Section */}
+        {/* Direct Contact & Map Section */}
         <section className="py-8 px-4 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            {/* Left: Interactive Inquiry Form */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm space-y-5">
+            {/* Left: Direct Front Desk & Reservation Hub */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm space-y-6">
               <div>
                 <span className="text-xs uppercase tracking-widest text-gold-600 font-bold block">
-                  Send a Message
+                  24/7 Front Desk Services
                 </span>
-                <h2 className="text-2xl font-serif font-bold text-gray-900 mt-1">
-                  Guest Inquiries & Assistance
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-1">
+                  Connect Directly With Us
                 </h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  We reply within 15–30 minutes during transit hours.
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 leading-relaxed">
+                  For immediate room reservations, rate inquiries, or assistance, reach our 24/7 front desk team directly via phone, WhatsApp, or email.
                 </p>
               </div>
 
-              {success ? (
-                <div className="p-6 bg-emerald-50 border border-emerald-300 rounded-2xl text-center space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-8 h-8" />
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <a
+                  href="https://wa.me/8801916944212?text=Hello%20Hotel%20Al%20Safa,%20I%20would%20like%20to%20inquire%20about%20room%20availability"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-bold p-4 rounded-2xl flex items-center justify-between shadow-md transition transform hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-xs uppercase tracking-wider text-emerald-100 font-semibold">Instant Chat</div>
+                      <div className="text-sm font-bold">WhatsApp: 01916944212</div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-emerald-900 font-serif">Message Delivered!</h3>
-                  <p className="text-xs text-emerald-700">
-                    Thank you. Our front desk concierge has received your inquiry and will contact your phone or WhatsApp shortly.
-                  </p>
-                  <button
-                    onClick={() => setSuccess(false)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-2 rounded-xl transition"
-                  >
-                    Send Another Message
-                  </button>
+                  <span className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-full">Chat Now →</span>
+                </a>
+
+                <a
+                  href="tel:+8801916944212"
+                  className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold p-4 rounded-2xl flex items-center justify-between shadow-md transition transform hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="text-xs uppercase tracking-wider text-black/70 font-semibold">24-Hour Hotline</div>
+                      <div className="text-sm font-bold">+880 1916-944212</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold bg-black/10 px-3 py-1 rounded-full">Call Desk →</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setBookingModalOpen(true)}
+                  className="w-full bg-[#0b1220] hover:bg-[#121c31] text-gold-400 border border-gold-500/40 font-bold p-4 rounded-2xl flex items-center justify-between shadow-md transition transform hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-gold-400" />
+                    <div className="text-left">
+                      <div className="text-xs uppercase tracking-wider text-gray-400 font-semibold">Instant Reservation</div>
+                      <div className="text-sm font-bold text-white">Book a Room Online</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold bg-gold-500 text-black px-3 py-1 rounded-full">Book Now →</span>
+                </button>
+              </div>
+
+              {/* Front Desk Information Highlights */}
+              <div className="border-t border-gray-100 pt-5 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                  Hotel Policies & Services:
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600">
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-1">
+                    <span className="font-bold text-gray-900 block">Check-in / Check-out</span>
+                    <p>Check-in: 12:00 PM onwards</p>
+                    <p>Check-out: By 11:30 AM</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-1">
+                    <span className="font-bold text-gray-900 block">Accepted Payments</span>
+                    <p>bKash, Nagad, DBBL Bank,</p>
+                    <p>Cards & Cash at Reception</p>
+                  </div>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {errorMsg && (
-                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{errorMsg}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Your Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Farhan Chowdhury"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-gold-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Phone / WhatsApp *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="+880 1XXXXXXXXX"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-gold-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Email Address (Optional)
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-gold-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                        Inquiry Topic
-                      </label>
-                      <select
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-gold-500"
-                      >
-                        <option value="Airport Shuttle Inquiry">Airport Shuttle Pick-up</option>
-                        <option value="Room Availability & Rates">Room Rates & Availability</option>
-                        <option value="Hajj / Umrah Group Stay">Hajj / Umrah Group Stay</option>
-                        <option value="Corporate / Long Transit">Corporate / Long Transit</option>
-                        <option value="Other Assistance">Other Assistance</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
-                      Your Message / Flight Details *
-                    </label>
-                    <textarea
-                      rows={4}
-                      required
-                      placeholder="Please include your expected arrival date, flight number if applicable, or questions..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3.5 text-xs text-gray-900 focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-500 text-black font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>{submitting ? "Submitting Inquiry..." : "Submit Message to Front Desk"}</span>
-                  </button>
-                </form>
-              )}
+              </div>
             </div>
 
             {/* Right: Map & Transit Route Guide */}
@@ -398,7 +299,7 @@ export default function ContactPage() {
                 Frequently Asked Questions
               </h2>
               <p className="text-xs sm:text-sm text-gray-600">
-                Quick answers regarding bookings, airport shuttle, and policies.
+                Quick answers regarding bookings, check-in, and payment policies.
               </p>
             </div>
 

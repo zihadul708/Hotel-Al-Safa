@@ -67,9 +67,7 @@ export function BookingModal({
   const [children, setChildren] = useState<number>(0);
 
   // Add-ons
-  const [airportTransfer, setAirportTransfer] = useState(false);
   const [extraBed, setExtraBed] = useState(false);
-  const [breakfast, setBreakfast] = useState(false);
 
   // Guest Details
   const [guestName, setGuestName] = useState("");
@@ -94,16 +92,6 @@ export function BookingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
-
-  // Promo Code
-  const [promoCodeInput, setPromoCodeInput] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<{
-    code: string;
-    discountAmount: number;
-    message: string;
-  } | null>(null);
-  const [promoLoading, setPromoLoading] = useState(false);
-  const [promoError, setPromoError] = useState("");
 
   // Load rooms and default dates
   useEffect(() => {
@@ -156,56 +144,12 @@ export function BookingModal({
   const baseRate = currentRoom ? currentRoom.basePrice : 3500;
   const roomCost = baseRate * nights;
 
-  // Add-ons prices (BDT)
-  const airportCost = airportTransfer ? 1200 : 0;
+  // Add-ons (BDT)
   const extraBedCost = extraBed ? 500 * nights : 0;
-  const breakfastCost = breakfast ? 450 * (adults + children) * nights : 0;
-  const addOnsTotal = airportCost + extraBedCost + breakfastCost;
+  const addOnsTotal = extraBedCost;
 
-  // 5% Service Tax & Surcharge
-  const subtotal = roomCost + addOnsTotal;
-  const discountAmount = appliedPromo ? appliedPromo.discountAmount : 0;
-  const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const taxAmount = Math.round(taxableAmount * 0.05);
-  const grandTotal = taxableAmount + taxAmount;
-
-  const handleApplyPromo = async () => {
-    if (!promoCodeInput.trim()) return;
-    setPromoLoading(true);
-    setPromoError("");
-    try {
-      const res = await fetch("/api/promo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: promoCodeInput.trim(),
-          nights,
-          baseAmount: subtotal,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.valid) {
-        setPromoError(data.message || "Invalid coupon code.");
-        setAppliedPromo(null);
-      } else {
-        setAppliedPromo({
-          code: data.code,
-          discountAmount: data.discountAmount,
-          message: data.message,
-        });
-      }
-    } catch {
-      setPromoError("Failed to validate promo code.");
-    } finally {
-      setPromoLoading(false);
-    }
-  };
-
-  const handleRemovePromo = () => {
-    setAppliedPromo(null);
-    setPromoCodeInput("");
-    setPromoError("");
-  };
+  // Direct Total (No VAT / Service surcharge added)
+  const grandTotal = roomCost + addOnsTotal;
 
   const handleNextStep1 = () => {
     setErrorMsg("");
@@ -262,11 +206,11 @@ export function BookingModal({
         paymentStatus: isPrepaid ? "PAID" : "PENDING",
         paymentMethod,
         specialRequests: combinedNotes,
-        airportTransfer,
+        airportTransfer: false,
         extraBed,
-        breakfast,
-        promoCode: appliedPromo?.code || null,
-        discountAmount,
+        breakfast: false,
+        promoCode: null,
+        discountAmount: 0,
       };
 
       const res = await fetch("/api/bookings", {
@@ -495,26 +439,6 @@ export function BookingModal({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <label
                     className={`cursor-pointer p-3 rounded-xl border flex flex-col justify-between text-xs transition ${
-                      airportTransfer
-                        ? "border-gold-500 bg-gold-500/10 text-white"
-                        : "border-gray-800 bg-[#121c31] text-gray-400"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <Plane className={`w-4 h-4 ${airportTransfer ? "text-gold-400" : "text-gray-500"}`} />
-                      <input
-                        type="checkbox"
-                        checked={airportTransfer}
-                        onChange={(e) => setAirportTransfer(e.target.checked)}
-                        className="rounded accent-gold-500"
-                      />
-                    </div>
-                    <span className="font-semibold text-white">Airport Shuttle</span>
-                    <span className="text-[11px] text-gold-400 font-medium">+৳1,200 (One-way)</span>
-                  </label>
-
-                  <label
-                    className={`cursor-pointer p-3 rounded-xl border flex flex-col justify-between text-xs transition ${
                       extraBed
                         ? "border-gold-500 bg-gold-500/10 text-white"
                         : "border-gray-800 bg-[#121c31] text-gray-400"
@@ -532,26 +456,6 @@ export function BookingModal({
                     <span className="font-semibold text-white">Extra Floor Bed</span>
                     <span className="text-[11px] text-gold-400 font-medium">+৳500 / night</span>
                   </label>
-
-                  <label
-                    className={`cursor-pointer p-3 rounded-xl border flex flex-col justify-between text-xs transition ${
-                      breakfast
-                        ? "border-gold-500 bg-gold-500/10 text-white"
-                        : "border-gray-800 bg-[#121c31] text-gray-400"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <Coffee className={`w-4 h-4 ${breakfast ? "text-gold-400" : "text-gray-500"}`} />
-                      <input
-                        type="checkbox"
-                        checked={breakfast}
-                        onChange={(e) => setBreakfast(e.target.checked)}
-                        className="rounded accent-gold-500"
-                      />
-                    </div>
-                    <span className="font-semibold text-white">Buffet Breakfast</span>
-                    <span className="text-[11px] text-gold-400 font-medium">+৳450 / person</span>
-                  </label>
                 </div>
               </div>
 
@@ -561,7 +465,7 @@ export function BookingModal({
                   <span className="text-gray-400">{nights} Night{nights > 1 ? "s" : ""} Stay • Total Estimated:</span>
                   <div className="text-xl font-bold text-gold-400">
                     ৳{grandTotal.toLocaleString()}{" "}
-                    <span className="text-xs text-gray-400 font-normal">(Incl. taxes & service charge)</span>
+                    <span className="text-xs text-gray-400 font-normal">(Direct Room Rate)</span>
                   </div>
                 </div>
                 <button
@@ -638,11 +542,11 @@ export function BookingModal({
 
               <div>
                 <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                  Flight Details / Special Requests
+                  Special Requests / Arrival Notes (Optional)
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="e.g. Arriving on Biman Bangladesh Flight BG-042 at 7:00 PM. Please arrange airport pickup."
+                  placeholder="e.g. Late check-in at 9:00 PM, quiet room or upper floor preferred."
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   className="w-full bg-[#141f36] border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-gold-500 resize-none"
@@ -1150,56 +1054,6 @@ export function BookingModal({
                 </div>
               )}
 
-              {/* Promo Code Box */}
-              <div className="bg-[#0b1222] p-3.5 rounded-xl border border-gray-800">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                    <Tag className="w-3.5 h-3.5 text-gold-400" />
-                    <span>Have a Promo / Voucher Code?</span>
-                  </div>
-                  <span className="text-[10px] text-gray-400">
-                    Try: <span className="text-gold-400 font-mono">ALSAFA10</span> (10% off) or{" "}
-                    <span className="text-gold-400 font-mono">TRANSIT500</span>
-                  </span>
-                </div>
-                {appliedPromo ? (
-                  <div className="flex items-center justify-between bg-emerald-950/40 border border-emerald-600/50 rounded-lg px-3 py-2 text-xs">
-                    <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                      <Check className="w-4 h-4 text-emerald-400" />
-                      <span>{appliedPromo.message}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemovePromo}
-                      className="text-gray-400 hover:text-red-400 text-[11px] underline ml-2"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter code (e.g. ALSAFA10)"
-                      value={promoCodeInput}
-                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 bg-[#141f36] border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white uppercase placeholder:normal-case focus:outline-none focus:border-gold-500"
-                    />
-                    <button
-                      type="button"
-                      disabled={promoLoading || !promoCodeInput.trim()}
-                      onClick={handleApplyPromo}
-                      className="bg-gold-500 hover:bg-gold-400 disabled:opacity-50 text-black text-xs font-bold px-4 py-1.5 rounded-lg transition"
-                    >
-                      {promoLoading ? "Applying..." : "Apply"}
-                    </button>
-                  </div>
-                )}
-                {promoError && (
-                  <p className="text-[11px] text-red-400 mt-1.5">{promoError}</p>
-                )}
-              </div>
-
               {/* Order breakdown */}
               <div className="bg-[#0b1222] p-4 rounded-xl border border-gray-800 space-y-2 text-xs">
                 <div className="flex justify-between text-gray-300">
@@ -1208,22 +1062,12 @@ export function BookingModal({
                 </div>
                 {addOnsTotal > 0 && (
                   <div className="flex justify-between text-gray-300">
-                    <span>Selected Add-ons (Shuttle, Bed, Breakfast)</span>
+                    <span>Extra Floor Bed Setup</span>
                     <span>৳{addOnsTotal.toLocaleString()}</span>
                   </div>
                 )}
-                {appliedPromo && discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-400 font-medium">
-                    <span>Promo Discount ({appliedPromo.code})</span>
-                    <span>-৳{discountAmount.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-gray-400">
-                  <span>Govt. VAT & Hotel Service Surcharge (5%)</span>
-                  <span>৳{taxAmount.toLocaleString()}</span>
-                </div>
                 <div className="border-t border-gray-800 pt-2 flex justify-between font-bold text-base text-gold-400">
-                  <span>Grand Total to Pay</span>
+                  <span>Total Amount to Pay</span>
                   <span>৳{grandTotal.toLocaleString()}</span>
                 </div>
               </div>

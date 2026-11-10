@@ -38,7 +38,7 @@ export function TopBar() {
         <div className="flex items-center gap-4">
           <div className="hidden lg:flex items-center gap-1.5 text-gold-400/90 font-medium text-xs">
             <Clock className="w-3.5 h-3.5" />
-            <span>24/7 Front Desk & Airport Shuttle</span>
+            <span>24/7 Front Desk & Concierge</span>
           </div>
           <a
             href={waUrl}
@@ -70,8 +70,6 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Rooms & Suites", href: "/rooms" },
-    { label: "Amenities", href: "/amenities" },
-    { label: "Dining", href: "/dining" },
     { label: "Location", href: "/#location" },
     { label: "Contact", href: "/contact" },
   ];

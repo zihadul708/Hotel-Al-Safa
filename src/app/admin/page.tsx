@@ -1045,13 +1045,7 @@ export default function AdminDashboardPage() {
 
                 <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800 space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Airport Shuttle Service:</span>
-                    <span className="font-semibold text-white">
-                      {selectedBooking.airportTransfer ? "Requested (Yes)" : "No"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Extra Bed:</span>
+                    <span className="text-gray-400">Extra Bed Setup:</span>
                     <span className="font-semibold text-white">
                       {selectedBooking.extraBed ? "Yes (+৳500/night)" : "No"}
                     </span>

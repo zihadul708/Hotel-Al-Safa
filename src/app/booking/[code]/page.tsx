@@ -293,30 +293,12 @@ export default function BookingVoucherPage() {
             <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 space-y-2 text-xs print:bg-white print:border-gray-300">
               <div className="flex justify-between text-gray-300 print:text-black">
                 <span>Room Charges ({booking.nights} night{booking.nights > 1 ? "s" : ""})</span>
-                <span className="font-mono">৳{(booking.totalAmount + (booking.discountAmount || 0)).toLocaleString()}</span>
+                <span className="font-mono">৳{booking.totalAmount.toLocaleString()}</span>
               </div>
-              {booking.airportTransfer && (
-                <div className="flex justify-between text-gray-300 print:text-black">
-                  <span>Airport Shuttle Service</span>
-                  <span className="font-mono">Included / ৳1,200</span>
-                </div>
-              )}
               {booking.extraBed && (
                 <div className="flex justify-between text-gray-300 print:text-black">
                   <span>Extra Bed Setup</span>
                   <span className="font-mono">Included / ৳{(500 * booking.nights).toLocaleString()}</span>
-                </div>
-              )}
-              {booking.breakfast && (
-                <div className="flex justify-between text-gray-300 print:text-black">
-                  <span>Buffet Breakfast</span>
-                  <span className="font-mono">Included</span>
-                </div>
-              )}
-              {booking.discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-400 font-bold">
-                  <span>Promotional Discount ({booking.promoCode || "PROMO"})</span>
-                  <span className="font-mono">-৳{booking.discountAmount.toLocaleString()}</span>
                 </div>
               )}
               <div className="border-t border-gray-800 pt-2 flex justify-between text-base font-bold text-gold-400 print:text-black print:border-black">
@@ -334,7 +316,7 @@ export default function BookingVoucherPage() {
           {booking.specialRequests && (
             <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 text-xs print:bg-gray-50 print:border-gray-300">
               <span className="font-bold text-gold-400 block mb-1 print:text-gray-800">
-                Guest Flight & Arrival Notes:
+                Guest Arrival Notes:
               </span>
               <p className="text-gray-300 print:text-black italic">
                 &ldquo;{booking.specialRequests}&rdquo;
@@ -348,8 +330,8 @@ export default function BookingVoucherPage() {
             <ul className="list-disc pl-5 space-y-1 text-[11px]">
               <li>Please present a valid National ID card or Passport upon check-in.</li>
               <li>Standard check-in time begins at 12:00 PM. Early check-in is subject to room availability.</li>
-              <li>24/7 Front Desk is always available to assist with luggage, flight tracking, and airport transfers.</li>
-              <li>Emergency or delayed flight assistance: Please call +880 1916-944212 or WhatsApp 01916944212.</li>
+              <li>24/7 Front Desk is always available to assist with luggage and guest check-in.</li>
+              <li>Reception & Reservations assistance: Please call +880 1916-944212 or WhatsApp 01916944212.</li>
             </ul>
           </div>
 

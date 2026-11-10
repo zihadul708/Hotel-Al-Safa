@@ -271,8 +271,8 @@ export default function RoomDetailPage() {
                     <p>Standard check-out is by 11:30 AM. Late check-out subject to room availability.</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="font-bold text-gray-900 block">Airport Shuttle</span>
-                    <p>Pickup & drop-off available 24/7. Select airport transfer add-on during booking.</p>
+                    <span className="font-bold text-gray-900 block">24/7 Front Desk</span>
+                    <p>Reception is open 24 hours to assist with check-in, queries, and luggage assistance.</p>
                   </div>
                   <div className="space-y-1">
                     <span className="font-bold text-gray-900 block">Payment Options</span>

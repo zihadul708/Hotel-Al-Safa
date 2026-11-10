@@ -99,33 +99,33 @@ export function Footer() {
           </h3>
           <ul className="space-y-2 text-sm text-gray-400">
             <li>
-              <Link href="/rooms/couple-ac-deluxe" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
+              <Link href="/rooms" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
                 <ChevronRight className="w-3.5 h-3.5 text-gold-400" />
-                <span>Couple AC Deluxe Room (৳3,500)</span>
+                <span>Deluxe (Single) AC (৳2,000)</span>
               </Link>
             </li>
             <li>
-              <Link href="/rooms/couple-non-ac-economy" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
+              <Link href="/rooms" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
                 <ChevronRight className="w-3.5 h-3.5 text-gold-400" />
-                <span>Couple Economy Non-AC (৳1,400)</span>
+                <span>Deluxe (Couple) AC (৳2,500)</span>
               </Link>
             </li>
             <li>
-              <Link href="/rooms/super-deluxe-twin" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
+              <Link href="/rooms" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
                 <ChevronRight className="w-3.5 h-3.5 text-gold-400" />
-                <span>Super Deluxe Twin Bed AC (৳4,800)</span>
+                <span>Deluxe (Double) AC (৳3,500)</span>
               </Link>
             </li>
             <li>
-              <Link href="/rooms/executive-family-suite" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
+              <Link href="/rooms" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
                 <ChevronRight className="w-3.5 h-3.5 text-gold-400" />
-                <span>Executive Royal Family Suite (৳6,500)</span>
+                <span>Deluxe (Family) AC (৳4,000)</span>
               </Link>
             </li>
             <li>
-              <Link href="/rooms/presidential-al-safa-suite" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
+              <Link href="/rooms" className="hover:text-gold-400 transition-colors flex items-center gap-1.5">
                 <ChevronRight className="w-3.5 h-3.5 text-gold-400" />
-                <span>The Al Safa Presidential Suite (৳9,500)</span>
+                <span>Economy (Single) Non-AC (৳1,500)</span>
               </Link>
             </li>
           </ul>
@@ -139,7 +139,7 @@ export function Footer() {
           <ul className="space-y-2 text-sm text-gray-400">
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-              <span>Airport Pickup & Drop Arrangement</span>
+              <span>24/7 Front Desk & Concierge</span>
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
@@ -147,7 +147,7 @@ export function Footer() {
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-              <span>On-Site Halal Restaurant & Cafe</span>
+              <span>High-Speed Fiber Wi-Fi Throughout</span>
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
