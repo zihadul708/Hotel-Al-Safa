@@ -27,6 +27,12 @@ import {
   Copy,
   Landmark,
   MessageCircle,
+  FileText,
+  Home,
+  Briefcase,
+  Globe,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { HOTEL_CONFIG } from "@/lib/hotel-config";
 
@@ -69,11 +75,20 @@ export function BookingModal({
   // Add-ons
   const [extraBed, setExtraBed] = useState(false);
 
-  // Guest Details
+  // Guest Details (DMP Section-27 Hotel Registration Compliance)
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestNid, setGuestNid] = useState("");
+  const [permanentAddress, setPermanentAddress] = useState("");
+  const [occupation, setOccupation] = useState("Private Service");
+  const [customOccupation, setCustomOccupation] = useState("");
+  const [nationality, setNationality] = useState("Bangladeshi");
+  const [isForeigner, setIsForeigner] = useState(false);
+  const [fatherOrHusbandName, setFatherOrHusbandName] = useState("");
+  const [purposeOfTravel, setPurposeOfTravel] = useState("Airport Transit");
+  const [customPurpose, setCustomPurpose] = useState("");
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
   const [specialRequests, setSpecialRequests] = useState("");
 
   // Payment
@@ -167,11 +182,25 @@ export function BookingModal({
   const handleNextStep2 = () => {
     setErrorMsg("");
     if (!guestName.trim()) {
-      setErrorMsg("Please enter your full name.");
+      setErrorMsg("Please enter your full name (অতিথির পুরো নাম লিখুন)।");
       return;
     }
-    if (!guestPhone.trim()) {
-      setErrorMsg("Please enter your valid phone number.");
+    const cleanPhone = guestPhone.replace(/[^0-9]/g, "");
+    if (!guestPhone.trim() || cleanPhone.length < 10) {
+      setErrorMsg("Please enter a valid mobile number (সঠিক মোবাইল নম্বর দিন)।");
+      return;
+    }
+    if (!guestNid.trim()) {
+      setErrorMsg("Please enter your NID or Passport Number (জাতীয় পরিচয়পত্র বা পাসপোর্ট নম্বর লিখুন)।");
+      return;
+    }
+    if (!permanentAddress.trim()) {
+      setErrorMsg("Please enter your permanent address (স্থায়ী ঠিকানা লিখুন)।");
+      return;
+    }
+    const finalOccupation = occupation === "Other" ? customOccupation.trim() : occupation;
+    if (!finalOccupation) {
+      setErrorMsg("Please specify your occupation (পেশা উল্লেখ করুন)।");
       return;
     }
     setStep(3);
@@ -189,13 +218,21 @@ export function BookingModal({
       const combinedNotes = paymentNoteParts.length > 0 ? paymentNoteParts.join(" | ") : (specialRequests || null);
 
       const isPrepaid = paymentMethod !== "PAY_AT_HOTEL";
+      const finalOccupation = (occupation === "Other" ? customOccupation.trim() : occupation) || "Private Service";
+      const finalPurpose = (purposeOfTravel === "Other" ? customPurpose.trim() : purposeOfTravel) || "Transit";
+      const finalNationality = isForeigner ? (nationality.trim() || "Foreign National") : "Bangladeshi";
 
       const payload = {
         roomTypeId: selectedRoomId,
-        guestName,
-        guestEmail: guestEmail || "guest@hotelalsafabd.com",
-        guestPhone,
-        guestNidPassport: guestNid || null,
+        guestName: guestName.trim(),
+        guestEmail: guestEmail.trim() || "guest@hotelalsafabd.com",
+        guestPhone: guestPhone.trim(),
+        guestNidPassport: guestNid.trim(),
+        permanentAddress: permanentAddress.trim(),
+        occupation: finalOccupation,
+        nationality: finalNationality,
+        fatherOrHusbandName: fatherOrHusbandName.trim() || null,
+        purposeOfTravel: finalPurpose,
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
         nights,
@@ -479,80 +516,286 @@ export function BookingModal({
             </div>
           )}
 
-          {/* STEP 2: Guest Details */}
+          {/* STEP 2: Guest Details (DMP Sec-27 Police Guest Registration Format) */}
           {step === 2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Mohammad Tanvir"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                    Phone / Mobile Number *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+880 1711-XXXXXX"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500"
-                  />
+            <div className="space-y-5">
+              {/* DMP Compliance Banner */}
+              <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-gold-500/10 to-amber-500/10 border border-gold-500/30 rounded-xl">
+                <div className="flex items-start gap-2.5">
+                  <FileText className="w-5 h-5 text-gold-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-gold-300 uppercase tracking-wide">
+                        Guest Registration Form
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold-500/20 text-gold-300 border border-gold-500/40 font-mono">
+                        Sec-27, DMP Ordinance 1976
+                      </span>
+                    </div>
+                    <p className="text-gray-300 mt-1 leading-relaxed">
+                      হোটেল ও ঢাকা মেট্রোপলিটন পুলিশ বিধি অনুযায়ী গেস্টের তথ্যগুলো সঠিকভাবে দিন। <strong className="text-gold-300 font-semibold">বোল্ড চিহ্নিত (১, ৫, ১২, ১৪, ১৫, ১৮)</strong> বিষয়গুলো আইনগতভাবে আবশ্যক।
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="name@example.com"
-                    value={guestEmail}
-                    onChange={(e) => setGuestEmail(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500"
-                  />
+              {/* SECTION: Main Bold Mandatories */}
+              <div className="space-y-4 bg-[#111a2e]/60 p-4 rounded-xl border border-gray-800">
+                <div className="flex items-center justify-between border-b border-gray-800/80 pb-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
+                    <span>Mandatory Guest Information (প্রধান আবশ্যকীয় তথ্য)</span>
+                  </h3>
+                  <span className="text-[11px] text-gray-400">* Required</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                    NID or Passport Number (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="For expedited check-in"
-                    value={guestNid}
-                    onChange={(e) => setGuestNid(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500"
-                  />
+                {/* 1. Name & 18. Mobile No */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1 tracking-wide">
+                      1. Guest Full Name (গেস্টের নাম) <span className="text-gold-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Mohammad Tanvir Ahmed"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1 tracking-wide">
+                      18. Mobile No (মোবাইল নম্বর) <span className="text-gold-400">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. 01711-234567"
+                      value={guestPhone}
+                      onChange={(e) => setGuestPhone(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                {/* 15. NID / Passport No & 5. Permanent Address */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1 tracking-wide">
+                      15. NID No / Passport No (এনআইডি বা পাসপোর্ট) <span className="text-gold-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 1994827162910 or Passport No"
+                      value={guestNid}
+                      onChange={(e) => setGuestNid(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Check-in এর সময় মূল কপি বা ছবি প্রদর্শন করতে হবে।
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1 tracking-wide">
+                      5. Permanent Address (স্থায়ী ঠিকানা) <span className="text-gold-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="গ্রাম/মহল্লা, থানা/উপজেলা, জেলা"
+                      value={permanentAddress}
+                      onChange={(e) => setPermanentAddress(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none transition"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      ভোটার আইডি বা পাসপোর্ট অনুযায়ী পূর্ণ ঠিকানা।
+                    </p>
+                  </div>
+                </div>
+
+                {/* 14. Nationality & 12. Occupation */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1.5 tracking-wide">
+                      14. Nationality (জাতীয়তা) <span className="text-gold-400">*</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForeigner(false);
+                          setNationality("Bangladeshi");
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                          !isForeigner
+                            ? "bg-gold-500/20 border-gold-500 text-gold-300"
+                            : "bg-[#141f36] border-gray-700 text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        <span>🇧🇩 Bangladeshi</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForeigner(true);
+                          setNationality("");
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                          isForeigner
+                            ? "bg-gold-500/20 border-gold-500 text-gold-300"
+                            : "bg-[#141f36] border-gray-700 text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>Foreigner</span>
+                      </button>
+                    </div>
+                    {isForeigner && (
+                      <input
+                        type="text"
+                        placeholder="Enter Country / দেশ উল্লেখ করুন"
+                        value={nationality}
+                        onChange={(e) => setNationality(e.target.value)}
+                        className="mt-2 w-full bg-[#141f36] border border-gold-500/50 rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white font-bold mb-1.5 tracking-wide">
+                      12. Occupation (পেশা) <span className="text-gold-400">*</span>
+                    </label>
+                    <select
+                      value={occupation}
+                      onChange={(e) => setOccupation(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition"
+                    >
+                      <option value="Private Service">Private Service (বেসরকারি চাকরি)</option>
+                      <option value="Business">Business (ব্যবসা)</option>
+                      <option value="Govt Service">Govt Service (সরকারি চাকরি)</option>
+                      <option value="Expatriate / Remittance Earner">Expatriate / Remittance Earner (প্রবাসী)</option>
+                      <option value="Student">Student (শিক্ষার্থী)</option>
+                      <option value="Doctor / Engineer">Doctor / Engineer / Professional</option>
+                      <option value="Housewife / Homemaker">Housewife / Homemaker (গৃহিণী)</option>
+                      <option value="Other">Other (অন্যান্য)</option>
+                    </select>
+                    {occupation === "Other" && (
+                      <input
+                        type="text"
+                        placeholder="পেশা লিখুন (Specify occupation)"
+                        value={customOccupation}
+                        onChange={(e) => setCustomOccupation(e.target.value)}
+                        className="mt-2 w-full bg-[#141f36] border border-gold-500/50 rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
-                  Special Requests / Arrival Notes (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. Late check-in at 9:00 PM, quiet room or upper floor preferred."
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  className="w-full bg-[#141f36] border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-gold-500 resize-none"
-                />
+              {/* SECTION: Optional / Additional Information Accordion */}
+              <div className="bg-[#111a2e]/40 rounded-xl border border-gray-800/80 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-800/30 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-300">
+                      Additional Guest Information (ঐচ্ছিক তথ্য: পিতা/স্বামীর নাম, ভ্রমণের উদ্দেশ্য, ইমেইল)
+                    </span>
+                    <span className="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded">
+                      Optional
+                    </span>
+                  </div>
+                  {showOptionalFields ? (
+                    <ChevronUp className="w-4 h-4 text-gold-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {showOptionalFields && (
+                  <div className="p-4 pt-1 space-y-4 border-t border-gray-800/60">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* 3. Name of Father/Husband */}
+                      <div>
+                        <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                          3. Name of Father / Husband (পিতা বা স্বামীর নাম)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Md. Abul Kashem"
+                          value={fatherOrHusbandName}
+                          onChange={(e) => setFatherOrHusbandName(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+
+                      {/* 20. Purpose of Travel */}
+                      <div>
+                        <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                          20. Purpose of Travel (ভ্রমণের উদ্দেশ্য)
+                        </label>
+                        <select
+                          value={purposeOfTravel}
+                          onChange={(e) => setPurposeOfTravel(e.target.value)}
+                          className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                        >
+                          <option value="Airport Transit">Airport Transit / Flight (বিমানবন্দর ট্রানজিট)</option>
+                          <option value="Hajj / Umrah Transit">Hajj / Umrah Transit (হজ্ব বা ওমরাহ)</option>
+                          <option value="Business / Official">Business / Official (ব্যবসা বা অফিসিয়াল)</option>
+                          <option value="Medical / Treatment">Medical / Treatment (চিকিৎসা)</option>
+                          <option value="Family Visit / Leisure">Family Visit / Leisure (পারিবারিক বা ভ্রমণ)</option>
+                          <option value="Other">Other (অন্যান্য)</option>
+                        </select>
+                        {purposeOfTravel === "Other" && (
+                          <input
+                            type="text"
+                            placeholder="ভ্রমণের উদ্দেশ্য লিখুন"
+                            value={customPurpose}
+                            onChange={(e) => setCustomPurpose(e.target.value)}
+                            className="mt-2 w-full bg-[#141f36] border border-gold-500/50 rounded-xl px-4 py-1.5 text-xs text-white focus:outline-none"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                        Email Address (ইমেইল ঠিকানা - ভাউচার ও রসিদ পাওয়ার জন্য)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="name@example.com"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl px-4 py-2 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Special Requests */}
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">
+                        Special Requests / Arrival Notes (ফ্লাইট সময় বা বিশেষ চাহিদা)
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Flight lands at 9 PM. Quiet room or upper floor requested."
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        className="w-full bg-[#141f36] border border-gray-700 focus:border-gold-500 rounded-xl p-2.5 text-xs text-white focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Navigation Bar */}
               <div className="bg-[#0b1222] p-4 rounded-xl border border-gray-800 flex items-center justify-between">
                 <button
                   type="button"
@@ -564,9 +807,9 @@ export function BookingModal({
                 <button
                   type="button"
                   onClick={handleNextStep2}
-                  className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2"
+                  className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-gold-500/10 hover:scale-[1.02]"
                 >
-                  <span>Select Payment Method</span>
+                  <span>Continue to Payment</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1148,6 +1391,32 @@ export function BookingModal({
                     </span>
                   </div>
                   <div>
+                    <span className="text-gray-500 block">Guest Name & Phone</span>
+                    <span className="text-white font-medium">
+                      {confirmedBooking.guestName} ({confirmedBooking.guestPhone})
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">NID / Passport No</span>
+                    <span className="text-gold-400 font-mono font-medium">
+                      {confirmedBooking.guestNidPassport || "Verified at check-in"}
+                    </span>
+                  </div>
+                  {confirmedBooking.permanentAddress && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500 block">Permanent Address</span>
+                      <span className="text-white font-medium">{confirmedBooking.permanentAddress}</span>
+                    </div>
+                  )}
+                  {confirmedBooking.occupation && (
+                    <div>
+                      <span className="text-gray-500 block">Occupation & Nationality</span>
+                      <span className="text-white font-medium">
+                        {confirmedBooking.occupation} • {confirmedBooking.nationality || "Bangladeshi"}
+                      </span>
+                    </div>
+                  )}
+                  <div>
                     <span className="text-gray-500 block">Check-in</span>
                     <span className="text-white font-medium">
                       {new Date(confirmedBooking.checkIn).toLocaleDateString()} (From 12:00 PM)
@@ -1204,7 +1473,7 @@ export function BookingModal({
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <a
                   href={`https://wa.me/8801916944212?text=${encodeURIComponent(
-                    `Hello Hotel Al Safa, I have made a reservation!\n\nBooking Code: ${confirmedBooking.bookingCode}\nGuest Name: ${confirmedBooking.guestName}\nRoom: ${confirmedBooking.roomType?.name || ""}\nCheck-in: ${new Date(confirmedBooking.checkIn).toLocaleDateString()}\nTotal Amount: ৳${confirmedBooking.totalAmount}\nPayment Method: ${confirmedBooking.paymentMethod}${senderAccount ? `\nSender: ${senderAccount}` : ""}${transactionId ? `\nTrxID/Ref: ${transactionId}` : ""}\n\nPlease verify and confirm.`
+                    `Hello Hotel Al Safa, I have made a reservation!\n\nBooking Code: ${confirmedBooking.bookingCode}\nGuest Name: ${confirmedBooking.guestName}\nPhone: ${confirmedBooking.guestPhone}\nNID/Passport: ${confirmedBooking.guestNidPassport || "To verify at desk"}${confirmedBooking.permanentAddress ? `\nAddress: ${confirmedBooking.permanentAddress}` : ""}\nRoom: ${confirmedBooking.roomType?.name || ""}\nCheck-in: ${new Date(confirmedBooking.checkIn).toLocaleDateString()}\nTotal Amount: ৳${confirmedBooking.totalAmount}\nPayment Method: ${confirmedBooking.paymentMethod}${senderAccount ? `\nSender: ${senderAccount}` : ""}${transactionId ? `\nTrxID/Ref: ${transactionId}` : ""}\n\nPlease verify and confirm.`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

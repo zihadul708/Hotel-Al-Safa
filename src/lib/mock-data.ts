@@ -27,6 +27,12 @@ export interface FallbackBooking {
   guestEmail: string;
   guestPhone: string;
   guestNidPassport: string | null;
+  permanentAddress?: string | null;
+  occupation?: string | null;
+  nationality?: string | null;
+  fatherOrHusbandName?: string | null;
+  purposeOfTravel?: string | null;
+  allottedRoom?: string | null;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -409,6 +415,12 @@ export const INITIAL_BOOKINGS: FallbackBooking[] = [
     guestEmail: "tanvir.ahmed@example.com",
     guestPhone: "+880 1711-234567",
     guestNidPassport: "1994827162910",
+    permanentAddress: "Vill: Baunia, Thana: Uttara, Dist: Dhaka",
+    occupation: "Software Engineer",
+    nationality: "Bangladeshi",
+    fatherOrHusbandName: "Md. Abul Kashem",
+    purposeOfTravel: "Flight Transit",
+    allottedRoom: "204",
     checkIn: today.toISOString(),
     checkOut: tomorrow.toISOString(),
     nights: 1,
@@ -436,7 +448,13 @@ export const INITIAL_BOOKINGS: FallbackBooking[] = [
     guestName: "Dr. Rafiqul Islam",
     guestEmail: "rafiqul.islam@hospital.edu.bd",
     guestPhone: "+880 1819-876543",
-    guestNidPassport: null,
+    guestNidPassport: "1982541928472",
+    permanentAddress: "Holding 42, Ward 3, Chawkbazar, Chattogram",
+    occupation: "Medical Doctor",
+    nationality: "Bangladeshi",
+    fatherOrHusbandName: "Prof. Nurul Islam",
+    purposeOfTravel: "Hajj / Umrah Transit",
+    allottedRoom: "305",
     checkIn: today.toISOString(),
     checkOut: dayAfter.toISOString(),
     nights: 2,
@@ -464,7 +482,13 @@ export const INITIAL_BOOKINGS: FallbackBooking[] = [
     guestName: "Mahbubur Rahman",
     guestEmail: "mahbub.corp@dhakatech.com",
     guestPhone: "+880 1912-349812",
-    guestNidPassport: null,
+    guestNidPassport: "1988261947291",
+    permanentAddress: "House 15, Road 4, Sector 7, Uttara, Dhaka",
+    occupation: "Business Executive",
+    nationality: "Bangladeshi",
+    fatherOrHusbandName: "Haji Shamsur Rahman",
+    purposeOfTravel: "Business",
+    allottedRoom: "102",
     checkIn: tomorrow.toISOString(),
     checkOut: dayAfter.toISOString(),
     nights: 1,

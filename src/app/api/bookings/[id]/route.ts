@@ -17,6 +17,13 @@ export async function PATCH(
           ...(body.status && { status: body.status }),
           ...(body.paymentStatus && { paymentStatus: body.paymentStatus }),
           ...(body.paidAmount !== undefined && { paidAmount: Number(body.paidAmount) }),
+          ...(body.allottedRoom !== undefined && { allottedRoom: body.allottedRoom }),
+          ...(body.guestNidPassport !== undefined && { guestNidPassport: body.guestNidPassport }),
+          ...(body.permanentAddress !== undefined && { permanentAddress: body.permanentAddress }),
+          ...(body.occupation !== undefined && { occupation: body.occupation }),
+          ...(body.nationality !== undefined && { nationality: body.nationality }),
+          ...(body.fatherOrHusbandName !== undefined && { fatherOrHusbandName: body.fatherOrHusbandName }),
+          ...(body.purposeOfTravel !== undefined && { purposeOfTravel: body.purposeOfTravel }),
         },
         include: {
           roomType: true,
@@ -30,6 +37,13 @@ export async function PATCH(
         ...(body.status && { status: body.status }),
         ...(body.paymentStatus && { paymentStatus: body.paymentStatus }),
         ...(body.paidAmount !== undefined && { paidAmount: Number(body.paidAmount) }),
+        ...(body.allottedRoom !== undefined && { allottedRoom: body.allottedRoom }),
+        ...(body.guestNidPassport !== undefined && { guestNidPassport: body.guestNidPassport }),
+        ...(body.permanentAddress !== undefined && { permanentAddress: body.permanentAddress }),
+        ...(body.occupation !== undefined && { occupation: body.occupation }),
+        ...(body.nationality !== undefined && { nationality: body.nationality }),
+        ...(body.fatherOrHusbandName !== undefined && { fatherOrHusbandName: body.fatherOrHusbandName }),
+        ...(body.purposeOfTravel !== undefined && { purposeOfTravel: body.purposeOfTravel }),
       });
 
       if (fallbackUpdated) {

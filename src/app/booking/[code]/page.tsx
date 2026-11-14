@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Share2,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 
 interface BookingVoucher {
@@ -26,6 +27,12 @@ interface BookingVoucher {
   guestEmail: string;
   guestPhone: string;
   guestNidPassport: string | null;
+  permanentAddress?: string | null;
+  occupation?: string | null;
+  nationality?: string | null;
+  fatherOrHusbandName?: string | null;
+  purposeOfTravel?: string | null;
+  allottedRoom?: string | null;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -58,6 +65,7 @@ export default function BookingVoucherPage() {
   const code = params.code as string;
 
   const [booking, setBooking] = useState<BookingVoucher | null>(null);
+  const [viewMode, setViewMode] = useState<"voucher" | "policeForm">("voucher");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -127,221 +135,498 @@ export default function BookingVoucherPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>Return to Hotel Al Safa</span>
         </Link>
+        
+        {/* View Switcher Pills */}
+        <div className="flex items-center bg-[#0e1627] p-1 rounded-xl border border-gray-800">
+          <button
+            onClick={() => setViewMode("voucher")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              viewMode === "voucher"
+                ? "bg-gold-500 text-black shadow"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Web Voucher
+          </button>
+          <button
+            onClick={() => setViewMode("policeForm")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              viewMode === "policeForm"
+                ? "bg-gold-500 text-black shadow"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>DMP Police Form (Sec-27)</span>
+          </button>
+        </div>
+
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-400 text-black font-bold px-5 py-2.5 rounded-xl text-sm shadow-md transition hover:scale-105"
+            className="flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-400 text-black font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-md transition hover:scale-105"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Official Voucher</span>
+            <span>{viewMode === "policeForm" ? "Print Police Form" : "Print Voucher"}</span>
           </button>
           <a
             href={`https://wa.me/8801916944212?text=Hello%20Hotel%20Al%20Safa,%20I%20am%20inquirying%20about%20my%20voucher%20${booking.bookingCode}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white text-sm px-4 py-2.5 rounded-xl font-semibold transition"
+            className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs px-3.5 py-2 rounded-xl font-semibold transition"
           >
-            <span>WhatsApp Reception</span>
+            <span>WhatsApp</span>
           </a>
         </div>
       </div>
 
-      {/* Main Voucher Sheet */}
-      <div className="max-w-3xl mx-auto bg-[#0b1220] border border-gold-500/40 rounded-3xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-white print:text-black">
-        {/* Letterhead Header */}
-        <div className="bg-gradient-to-r from-[#070c17] via-[#10192b] to-[#070c17] p-6 sm:p-8 border-b border-gray-800 print:bg-none print:border-b-2 print:border-black print:text-black">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="relative h-14 w-20 flex-shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Hotel Al Safa"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-serif font-bold text-white tracking-wide print:text-black">
-                  HOTEL AL SAFA
-                </h1>
-                <p className="text-xs text-gold-400 tracking-wider uppercase font-semibold print:text-gray-700">
-                  Luxury Transit & Suites • Ashkona, Dhaka
-                </p>
-                <p className="text-[11px] text-gray-400 print:text-gray-600 mt-0.5">
-                  Opposite Ashkona Hajj Camp, 5 Mins to Dhaka Int&apos;l Airport
-                </p>
-              </div>
+      {/* VIEW 1: DMP SECTION-27 GUEST REGISTRATION FORM */}
+      {viewMode === "policeForm" ? (
+        <div className="max-w-3xl mx-auto bg-white text-black p-6 sm:p-10 rounded-2xl shadow-2xl font-serif border border-gray-300 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full">
+          {/* Header */}
+          <div className="text-center border-b pb-4 mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-wide uppercase">
+              HOTEL AL SAFA
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-700 mt-0.5">
+              Mili Super Tower-2, 411/ Ashkona, (Front of hajj camp) Dhaka-1230
+            </p>
+            <p className="text-xs text-gray-600 mt-0.5">
+              Mobile: 01916-944212, 01844600174, 09613-258258
+            </p>
+            <div className="mt-3">
+              <span className="font-bold underline text-sm sm:text-base tracking-wider uppercase">
+                [GUEST REGISTRATION FORM]
+              </span>
+              <p className="text-[11px] text-gray-600 mt-0.5">
+                Section-27, Powers of Dhaka Metropolitan Ordinance 1976
+              </p>
             </div>
-
-            <div className="text-left sm:text-right">
-              <span className="text-[10px] uppercase tracking-widest text-gray-400 block print:text-gray-600">
-                Official Booking Reference
-              </span>
-              <span className="text-2xl font-mono font-bold text-gold-400 print:text-black">
-                {booking.bookingCode}
-              </span>
-              <div className="mt-1">
-                <span
-                  className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                    booking.paymentStatus === "PAID"
-                      ? "bg-emerald-950 text-emerald-300 border border-emerald-600 print:border-black print:text-black"
-                      : "bg-amber-950 text-amber-300 border border-amber-600 print:border-black print:text-black"
-                  }`}
-                >
-                  {booking.paymentStatus === "PAID"
-                    ? "✓ PAID & CONFIRMED"
-                    : "CONFIRMED • PAY AT HOTEL"}
-                </span>
-              </div>
+            <div className="text-right text-xs font-mono font-bold mt-2">
+              NO: <span className="underline decoration-dotted">{booking.bookingCode}</span>
             </div>
           </div>
-        </div>
 
-        {/* Voucher Content */}
-        <div className="p-6 sm:p-8 space-y-6">
-          {/* Guest & Reservation Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-gray-800 print:border-gray-300">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800">
-                Guest Information
-              </h3>
-              <p className="text-base font-bold text-white print:text-black">
+          {/* 1st Part : To be filled by the hotel guest */}
+          <div className="space-y-2.5 text-xs sm:text-[13px] leading-relaxed">
+            <div className="font-bold underline text-sm mb-2">
+              1st Part : To be filled by the hotel guest
+            </div>
+
+            <div className="flex flex-wrap items-baseline gap-2">
+              <strong className="font-bold">1. Name:</strong>
+              <span className="font-semibold underline decoration-dotted flex-1 min-w-[200px]">
                 {booking.guestName}
-              </p>
-              <p className="text-xs text-gray-400 print:text-gray-700 mt-1">
-                📞 {booking.guestPhone}
-              </p>
-              <p className="text-xs text-gray-400 print:text-gray-700">
-                ✉️ {booking.guestEmail}
-              </p>
-              {booking.guestNidPassport && (
-                <p className="text-xs text-gray-400 print:text-gray-700">
-                  🪪 ID / Passport: {booking.guestNidPassport}
-                </p>
-              )}
+              </span>
+              <span className="text-gray-500">2. .....................................................</span>
             </div>
 
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800">
-                Stay Schedule
-              </h3>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-gray-500 block print:text-gray-600">Check-in</span>
-                  <span className="font-semibold text-white print:text-black">
-                    {new Date(booking.checkIn).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="text-[11px] text-gold-400 block print:text-gray-700">From 12:00 PM</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block print:text-gray-600">Check-out</span>
-                  <span className="font-semibold text-white print:text-black">
-                    {new Date(booking.checkOut).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="text-[11px] text-gold-400 block print:text-gray-700">By 11:30 AM</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400 print:text-gray-700 mt-2">
-                Stay Duration: <span className="font-bold text-white print:text-black">{booking.nights} Night{booking.nights > 1 ? "s" : ""}</span> ({booking.adults} Adults{booking.children > 0 ? `, ${booking.children} Children` : ""})
-              </p>
+            <div className="text-gray-500 flex justify-between">
+              <span>3. .....................................................</span>
+              <span>4. .....................................................</span>
             </div>
-          </div>
 
-          {/* Reserved Accommodation Specs */}
-          <div className="bg-[#0e1627] p-5 rounded-2xl border border-gray-800 print:bg-gray-100 print:border-gray-400">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800">
-              Accommodation Reserved
-            </h3>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <h4 className="text-lg font-bold text-white print:text-black">
-                  {booking.roomType?.name || "Hotel Room Reservation"}
-                </h4>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 print:text-gray-700 mt-1">
-                  <span>{booking.roomType?.bedType || "Standard Bed"}</span>
-                  <span>•</span>
-                  <span>{booking.roomType?.sizeSqFt || 240} sq. ft.</span>
-                  <span>•</span>
-                  <span>{booking.roomType?.isAc ? "Air Conditioned" : "Non-AC"}</span>
-                </div>
+            <div className="flex items-baseline gap-2">
+              <span>3. Name of father/husband:</span>
+              <span className="underline decoration-dotted flex-1 font-medium">
+                {booking.fatherOrHusbandName || "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>4. Mother&apos;s name:</span>
+              <span className="underline decoration-dotted flex-1">
+                ..................................................................................................................................................
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <strong className="font-bold">5. Permanent Address:</strong>
+              <span className="font-medium underline decoration-dotted flex-1">
+                {booking.permanentAddress || "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>6. Current Address:</span>
+              <span className="underline decoration-dotted flex-1">
+                {booking.permanentAddress ? `${booking.permanentAddress} (Transit at Hotel Al Safa)` : "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>7. Relatives living in Dhaka: Address and phone number of acquaintances:</span>
+              <span className="underline decoration-dotted flex-1">
+                ......................................................................................
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-baseline gap-4">
+              <span>8. Age (estimated): ...... Years.</span>
+              <span>9. Identifying Marks (any body features/ moles/ cuts): .............................................................</span>
+            </div>
+
+            <div className="flex flex-wrap items-baseline gap-4">
+              <span>10. skin color: (a) Fair (b) Brown (c) Black.</span>
+              <span>11. Height (estimated): ..........Feet............Inches.</span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <strong className="font-bold">12. Occupation</strong> (to be filled with address):
+              <span className="font-medium underline decoration-dotted flex-1">
+                {booking.occupation || "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>13. Professional Identity Card Number (if any):</span>
+              <span className="underline decoration-dotted flex-1">
+                ..................................................................................................
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <strong className="font-bold">14. Nationality:</strong>
+              <span className="font-medium underline decoration-dotted flex-1">
+                {booking.nationality || "Bangladeshi"}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <strong className="font-bold">15. NID No:</strong>
+              <span className="font-medium font-mono underline decoration-dotted flex-1">
+                {booking.guestNidPassport || "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>16. Passport No. (if any):</span>
+              <span className="underline decoration-dotted flex-1 font-mono">
+                {booking.nationality !== "Bangladeshi" ? booking.guestNidPassport : "...................................................................................................................................."}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span>17. Driving License Number (if any):</span>
+              <span className="underline decoration-dotted flex-1">
+                ..................................................................................................
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-baseline justify-between gap-4">
+              <div className="flex items-baseline gap-2 flex-1 min-w-[200px]">
+                <strong className="font-bold">18. Mobile No:</strong>
+                <span className="font-medium font-mono underline decoration-dotted flex-1">
+                  {booking.guestPhone}
+                </span>
               </div>
-              <div className="text-right">
-                <span className="text-xs text-gray-400 block print:text-gray-600">Reservation Status</span>
-                <span className="font-bold text-emerald-400 text-sm print:text-black">
-                  {booking.status}
+              <div className="flex items-baseline gap-2 flex-1 min-w-[200px]">
+                <strong className="font-bold">19. Land Phone No:</strong>
+                <span className="underline decoration-dotted flex-1">
+                  ...............................................
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Itemized Charges & Invoicing */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 print:text-gray-800">
-              Itemized Financial Summary
-            </h3>
-            <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 space-y-2 text-xs print:bg-white print:border-gray-300">
-              <div className="flex justify-between text-gray-300 print:text-black">
-                <span>Room Charges ({booking.nights} night{booking.nights > 1 ? "s" : ""})</span>
-                <span className="font-mono">৳{booking.totalAmount.toLocaleString()}</span>
-              </div>
-              {booking.extraBed && (
-                <div className="flex justify-between text-gray-300 print:text-black">
-                  <span>Extra Bed Setup</span>
-                  <span className="font-mono">Included / ৳{(500 * booking.nights).toLocaleString()}</span>
-                </div>
-              )}
-              <div className="border-t border-gray-800 pt-2 flex justify-between text-base font-bold text-gold-400 print:text-black print:border-black">
-                <span>Total Amount {booking.paymentStatus === "PAID" ? "Paid" : "Due at Check-in"}</span>
-                <span>৳{booking.totalAmount.toLocaleString()} BDT</span>
-              </div>
-              <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-600">
-                <span>Payment Method</span>
-                <span className="font-semibold text-white print:text-black">{booking.paymentMethod}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Special Requests / Arrival Note */}
-          {booking.specialRequests && (
-            <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 text-xs print:bg-gray-50 print:border-gray-300">
-              <span className="font-bold text-gold-400 block mb-1 print:text-gray-800">
-                Guest Arrival Notes:
+            <div className="flex items-baseline gap-2">
+              <span>20. Purpose of Travel:</span>
+              <span className="font-medium underline decoration-dotted flex-1">
+                {booking.purposeOfTravel || "Flight Transit / Stay"}
               </span>
-              <p className="text-gray-300 print:text-black italic">
-                &ldquo;{booking.specialRequests}&rdquo;
-              </p>
             </div>
-          )}
 
-          {/* Important Arrival Policies */}
-          <div className="border-t border-gray-800 pt-4 text-xs text-gray-400 space-y-2 print:border-gray-300 print:text-gray-700">
-            <h4 className="font-bold text-white print:text-black">Important Guest Guidelines:</h4>
-            <ul className="list-disc pl-5 space-y-1 text-[11px]">
-              <li>Please present a valid National ID card or Passport upon check-in.</li>
-              <li>Standard check-in time begins at 12:00 PM. Early check-in is subject to room availability.</li>
-              <li>24/7 Front Desk is always available to assist with luggage and guest check-in.</li>
-              <li>Reception & Reservations assistance: Please call +880 1916-944212 or WhatsApp 01916944212.</li>
-            </ul>
+            {/* Signature of guest */}
+            <div className="text-right pt-6 pb-2">
+              <div className="inline-block text-center">
+                <div className="w-56 border-b border-black mb-1"></div>
+                <strong className="font-bold underline">Signature of Guest with Date</strong>
+              </div>
+            </div>
           </div>
 
-          {/* Footer Info */}
-          <div className="border-t border-gray-800/80 pt-4 flex flex-col sm:flex-row justify-between items-center text-[11px] text-gray-500 gap-2 print:border-gray-400">
-            <span>Hotel Al Safa • Mili Super Tower-2, Ashkona, Dhaka-1230</span>
-            <span>Issued: {new Date(booking.createdAt).toLocaleDateString()}</span>
+          {/* 2nd Part : To be filled by the Hotel Authority */}
+          <div className="border-t-2 border-black pt-4 mt-4 space-y-2 text-xs sm:text-[13px] leading-relaxed">
+            <div className="font-bold underline text-sm mb-2">
+              2nd Part : To be filled by the Hotel Authority
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span>21. Whether the phone of the Boarder has been verified by Hotel authority?</span>
+              <span className="font-bold">[✓] A. Yes.</span>
+              <span>[ ] B. No.</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span>22. Whether the picture of hotel Boarder has been collected by Digital camera?</span>
+              <span className="font-bold">[✓] A. Yes.</span>
+              <span>[ ] B. No.</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span>23. Columns of Hotel Register is filled correctly or not?</span>
+              <span className="font-bold">[✓] A. Yes.</span>
+              <span>[ ] B. No.</span>
+            </div>
+
+            <div className="flex flex-wrap items-baseline justify-between gap-4 pt-1">
+              <div className="flex items-baseline gap-2">
+                <strong className="font-bold">24. Allotted room no:</strong>
+                <span className="font-semibold font-mono underline decoration-dotted">
+                  {booking.allottedRoom || booking.roomType?.name}
+                </span>
+              </div>
+              <div>
+                <span>Photo no: </span>
+                <span className="underline decoration-dotted">...................................................</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-baseline justify-between gap-4 pt-1">
+              <div>
+                <span className="font-semibold">Arrival Time/ Date: </span>
+                <span className="underline decoration-dotted font-medium">
+                  {new Date(booking.checkIn).toLocaleDateString()} (12:00 PM)
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">Departure Time/ Date: </span>
+                <span className="underline decoration-dotted font-medium">
+                  {new Date(booking.checkOut).toLocaleDateString()} (11:30 AM)
+                </span>
+              </div>
+            </div>
+
+            {/* Signature of Front office */}
+            <div className="text-right pt-6">
+              <div className="inline-block text-center">
+                <div className="w-56 border-b border-black mb-1"></div>
+                <strong className="font-bold underline">Signature and Date of Front office</strong>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* VIEW 2: OFFICIAL WEB VOUCHER SHEET */
+        <div className="max-w-3xl mx-auto bg-[#0b1220] border border-gold-500/40 rounded-3xl shadow-2xl overflow-hidden print:border-none print:shadow-none print:bg-white print:text-black">
+          {/* Letterhead Header */}
+          <div className="bg-gradient-to-r from-[#070c17] via-[#10192b] to-[#070c17] p-6 sm:p-8 border-b border-gray-800 print:bg-none print:border-b-2 print:border-black print:text-black">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="relative h-14 w-20 flex-shrink-0">
+                  <Image
+                    src="/logo.png"
+                    alt="Hotel Al Safa"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-serif font-bold text-white tracking-wide print:text-black">
+                    HOTEL AL SAFA
+                  </h1>
+                  <p className="text-xs text-gold-400 tracking-wider uppercase font-semibold print:text-gray-700">
+                    Luxury Transit & Suites • Ashkona, Dhaka
+                  </p>
+                  <p className="text-[11px] text-gray-400 print:text-gray-600 mt-0.5">
+                    Opposite Ashkona Hajj Camp, 5 Mins to Dhaka Int&apos;l Airport
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-left sm:text-right">
+                <span className="text-[10px] uppercase tracking-widest text-gray-400 block print:text-gray-600">
+                  Official Booking Reference
+                </span>
+                <span className="text-2xl font-mono font-bold text-gold-400 print:text-black">
+                  {booking.bookingCode}
+                </span>
+                <div className="mt-1">
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                      booking.paymentStatus === "PAID"
+                        ? "bg-emerald-950 text-emerald-300 border border-emerald-600 print:border-black print:text-black"
+                        : "bg-amber-950 text-amber-300 border border-amber-600 print:border-black print:text-black"
+                    }`}
+                  >
+                    {booking.paymentStatus === "PAID"
+                      ? "✓ PAID & CONFIRMED"
+                      : "CONFIRMED • PAY AT HOTEL"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Voucher Content */}
+          <div className="p-6 sm:p-8 space-y-6">
+            {/* Guest & Reservation Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-gray-800 print:border-gray-300">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800 flex items-center gap-1.5">
+                  <span>Guest Registration (DMP Sec-27)</span>
+                </h3>
+                <p className="text-base font-bold text-white print:text-black">
+                  {booking.guestName}
+                </p>
+                <div className="mt-2 space-y-1 text-xs">
+                  <p className="text-gray-300 print:text-gray-800">
+                    📞 <span className="font-semibold text-white print:text-black">{booking.guestPhone}</span>
+                  </p>
+                  {booking.guestNidPassport && (
+                    <p className="text-gray-300 print:text-gray-800">
+                      🪪 NID / Passport: <span className="font-mono text-gold-400 print:text-black font-semibold">{booking.guestNidPassport}</span>
+                    </p>
+                  )}
+                  {booking.permanentAddress && (
+                    <p className="text-gray-300 print:text-gray-800">
+                      🏠 Address: <span className="text-white print:text-black">{booking.permanentAddress}</span>
+                    </p>
+                  )}
+                  {(booking.occupation || booking.nationality) && (
+                    <p className="text-gray-300 print:text-gray-800">
+                      💼 {booking.occupation || "N/A"} • 🇧🇩 {booking.nationality || "Bangladeshi"}
+                    </p>
+                  )}
+                  {booking.fatherOrHusbandName && (
+                    <p className="text-gray-300 print:text-gray-800">
+                      👨‍👦 Father/Husband: {booking.fatherOrHusbandName}
+                    </p>
+                  )}
+                  {booking.purposeOfTravel && (
+                    <p className="text-gray-300 print:text-gray-800">
+                      ✈️ Purpose: {booking.purposeOfTravel}
+                    </p>
+                  )}
+                  {booking.guestEmail && (
+                    <p className="text-gray-400 print:text-gray-600">
+                      ✉️ {booking.guestEmail}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800">
+                  Stay Schedule
+                </h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500 block print:text-gray-600">Check-in</span>
+                    <span className="font-semibold text-white print:text-black">
+                      {new Date(booking.checkIn).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <span className="text-[11px] text-gold-400 block print:text-gray-700">From 12:00 PM</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block print:text-gray-600">Check-out</span>
+                    <span className="font-semibold text-white print:text-black">
+                      {new Date(booking.checkOut).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <span className="text-[11px] text-gold-400 block print:text-gray-700">By 11:30 AM</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 print:text-gray-700 mt-2">
+                  Stay Duration: <span className="font-bold text-white print:text-black">{booking.nights} Night{booking.nights > 1 ? "s" : ""}</span> ({booking.adults} Adults{booking.children > 0 ? `, ${booking.children} Children` : ""})
+                </p>
+              </div>
+            </div>
+
+            {/* Reserved Accommodation Specs */}
+            <div className="bg-[#0e1627] p-5 rounded-2xl border border-gray-800 print:bg-gray-100 print:border-gray-400">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 mb-2 print:text-gray-800">
+                Accommodation Reserved
+              </h3>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <h4 className="text-lg font-bold text-white print:text-black">
+                    {booking.roomType?.name || "Hotel Room Reservation"}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 print:text-gray-700 mt-1">
+                    <span>{booking.roomType?.bedType || "Standard Bed"}</span>
+                    <span>•</span>
+                    <span>{booking.roomType?.sizeSqFt || 240} sq. ft.</span>
+                    <span>•</span>
+                    <span>{booking.roomType?.isAc ? "Air Conditioned" : "Non-AC"}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-gray-400 block print:text-gray-600">Reservation Status</span>
+                  <span className="font-bold text-emerald-400 text-sm print:text-black">
+                    {booking.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Itemized Charges & Invoicing */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gold-400 print:text-gray-800">
+                Itemized Financial Summary
+              </h3>
+              <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 space-y-2 text-xs print:bg-white print:border-gray-300">
+                <div className="flex justify-between text-gray-300 print:text-black">
+                  <span>Room Charges ({booking.nights} night{booking.nights > 1 ? "s" : ""})</span>
+                  <span className="font-mono">৳{booking.totalAmount.toLocaleString()}</span>
+                </div>
+                {booking.extraBed && (
+                  <div className="flex justify-between text-gray-300 print:text-black">
+                    <span>Extra Bed Setup</span>
+                    <span className="font-mono">Included / ৳{(500 * booking.nights).toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="border-t border-gray-800 pt-2 flex justify-between text-base font-bold text-gold-400 print:text-black print:border-black">
+                  <span>Total Amount {booking.paymentStatus === "PAID" ? "Paid" : "Due at Check-in"}</span>
+                  <span>৳{booking.totalAmount.toLocaleString()} BDT</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-gray-400 print:text-gray-600">
+                  <span>Payment Method</span>
+                  <span className="font-semibold text-white print:text-black">{booking.paymentMethod}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Special Requests / Arrival Note */}
+            {booking.specialRequests && (
+              <div className="bg-[#0e1627] p-4 rounded-xl border border-gray-800 text-xs print:bg-gray-50 print:border-gray-300">
+                <span className="font-bold text-gold-400 block mb-1 print:text-gray-800">
+                  Guest Arrival Notes:
+                </span>
+                <p className="text-gray-300 print:text-black italic">
+                  &ldquo;{booking.specialRequests}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* Important Arrival Policies */}
+            <div className="border-t border-gray-800 pt-4 text-xs text-gray-400 space-y-2 print:border-gray-300 print:text-gray-700">
+              <h4 className="font-bold text-white print:text-black">Important Guest Guidelines:</h4>
+              <ul className="list-disc pl-5 space-y-1 text-[11px]">
+                <li>Please present a valid National ID card or Passport upon check-in.</li>
+                <li>Standard check-in time begins at 12:00 PM. Early check-in is subject to room availability.</li>
+                <li>24/7 Front Desk is always available to assist with luggage and guest check-in.</li>
+                <li>Reception & Reservations assistance: Please call +880 1916-944212 or WhatsApp 01916944212.</li>
+              </ul>
+            </div>
+
+            {/* Footer Info */}
+            <div className="border-t border-gray-800/80 pt-4 flex flex-col sm:flex-row justify-between items-center text-[11px] text-gray-500 gap-2 print:border-gray-400">
+              <span>Hotel Al Safa • Mili Super Tower-2, Ashkona, Dhaka-1230</span>
+              <span>Issued: {new Date(booking.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

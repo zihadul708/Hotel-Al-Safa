@@ -40,6 +40,12 @@ interface AdminBooking {
   guestEmail: string;
   guestPhone: string;
   guestNidPassport: string | null;
+  permanentAddress?: string | null;
+  occupation?: string | null;
+  nationality?: string | null;
+  fatherOrHusbandName?: string | null;
+  purposeOfTravel?: string | null;
+  allottedRoom?: string | null;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -118,6 +124,13 @@ export default function AdminDashboardPage() {
   const [walkInRoomId, setWalkInRoomId] = useState("");
   const [walkInCheckIn, setWalkInCheckIn] = useState("");
   const [walkInCheckOut, setWalkInCheckOut] = useState("");
+  const [walkInNid, setWalkInNid] = useState("");
+  const [walkInAddress, setWalkInAddress] = useState("");
+  const [walkInOccupation, setWalkInOccupation] = useState("Private Service");
+  const [walkInNationality, setWalkInNationality] = useState("Bangladeshi");
+  const [walkInFatherOrHusband, setWalkInFatherOrHusband] = useState("");
+  const [walkInPurpose, setWalkInPurpose] = useState("Airport Transit");
+  const [walkInAllottedRoom, setWalkInAllottedRoom] = useState("");
   const [walkInPaymentMethod, setWalkInPaymentMethod] = useState("PAY_AT_HOTEL");
   const [walkInPaymentStatus, setWalkInPaymentStatus] = useState("PAID");
   const [walkInSubmitting, setWalkInSubmitting] = useState(false);
@@ -319,6 +332,13 @@ export default function AdminDashboardPage() {
           guestName: walkInName.trim(),
           guestPhone: walkInPhone.trim(),
           guestEmail: walkInEmail.trim() || "walkin@hotelalsafabd.com",
+          guestNidPassport: walkInNid.trim() || null,
+          permanentAddress: walkInAddress.trim() || null,
+          occupation: walkInOccupation.trim() || null,
+          nationality: walkInNationality.trim() || "Bangladeshi",
+          fatherOrHusbandName: walkInFatherOrHusband.trim() || null,
+          purposeOfTravel: walkInPurpose.trim() || null,
+          allottedRoom: walkInAllottedRoom.trim() || null,
           checkIn: new Date(walkInCheckIn).toISOString(),
           checkOut: new Date(walkInCheckOut).toISOString(),
           nights: diffDays,
@@ -342,6 +362,13 @@ export default function AdminDashboardPage() {
       setWalkInName("");
       setWalkInPhone("");
       setWalkInEmail("");
+      setWalkInNid("");
+      setWalkInAddress("");
+      setWalkInOccupation("Private Service");
+      setWalkInNationality("Bangladeshi");
+      setWalkInFatherOrHusband("");
+      setWalkInPurpose("Airport Transit");
+      setWalkInAllottedRoom("");
       fetchDashboardData();
     } catch (err: any) {
       setWalkInError(err.message || "Failed to create walk-in reservation.");
@@ -350,7 +377,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // CSV Export Function
+  // CSV Export Function (DMP Police Register Format Compliant)
   const handleExportCSV = () => {
     if (bookings.length === 0) {
       alert("No reservation records available to export.");
@@ -361,6 +388,13 @@ export default function AdminDashboardPage() {
       "Booking Reference",
       "Guest Name",
       "Phone",
+      "NID/Passport",
+      "Permanent Address",
+      "Occupation",
+      "Nationality",
+      "Father/Husband",
+      "Purpose of Travel",
+      "Allotted Room",
       "Email",
       "Room Category",
       "Check-In",
@@ -380,6 +414,13 @@ export default function AdminDashboardPage() {
       b.bookingCode,
       `"${b.guestName.replace(/"/g, '""')}"`,
       `"${b.guestPhone}"`,
+      `"${b.guestNidPassport || ""}"`,
+      `"${(b.permanentAddress || "").replace(/"/g, '""')}"`,
+      `"${(b.occupation || "").replace(/"/g, '""')}"`,
+      `"${b.nationality || "Bangladeshi"}"`,
+      `"${(b.fatherOrHusbandName || "").replace(/"/g, '""')}"`,
+      `"${(b.purposeOfTravel || "").replace(/"/g, '""')}"`,
+      `"${b.allottedRoom || ""}"`,
       `"${b.guestEmail}"`,
       `"${b.roomType?.name || "Suite"}"`,
       new Date(b.checkIn).toLocaleDateString(),
@@ -1007,13 +1048,40 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="space-y-3 text-xs">
-                <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800 space-y-1">
+                <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800 space-y-1.5">
                   <div className="font-bold text-sm text-white">{selectedBooking.guestName}</div>
-                  <div className="text-gray-300">📞 Phone: {selectedBooking.guestPhone}</div>
-                  <div className="text-gray-300">✉️ Email: {selectedBooking.guestEmail}</div>
+                  <div className="text-gray-300">📞 Phone: <span className="font-semibold text-white">{selectedBooking.guestPhone}</span></div>
+                  {selectedBooking.guestEmail && (
+                    <div className="text-gray-300">✉️ Email: {selectedBooking.guestEmail}</div>
+                  )}
                   {selectedBooking.guestNidPassport && (
+                    <div className="text-gold-400 font-mono">
+                      🪪 NID/Passport: <span className="font-bold">{selectedBooking.guestNidPassport}</span>
+                    </div>
+                  )}
+                  {selectedBooking.permanentAddress && (
                     <div className="text-gray-300">
-                      🪪 NID/Passport: {selectedBooking.guestNidPassport}
+                      🏠 Address: {selectedBooking.permanentAddress}
+                    </div>
+                  )}
+                  {(selectedBooking.occupation || selectedBooking.nationality) && (
+                    <div className="text-gray-300">
+                      💼 {selectedBooking.occupation || "N/A"} • 🇧🇩 {selectedBooking.nationality || "Bangladeshi"}
+                    </div>
+                  )}
+                  {selectedBooking.fatherOrHusbandName && (
+                    <div className="text-gray-300">
+                      👨‍👦 Father/Husband: {selectedBooking.fatherOrHusbandName}
+                    </div>
+                  )}
+                  {selectedBooking.purposeOfTravel && (
+                    <div className="text-gray-300">
+                      ✈️ Purpose: {selectedBooking.purposeOfTravel}
+                    </div>
+                  )}
+                  {selectedBooking.allottedRoom && (
+                    <div className="text-emerald-400 font-semibold font-mono">
+                      🚪 Allotted Room: {selectedBooking.allottedRoom}
                     </div>
                   )}
                 </div>
@@ -1167,6 +1235,107 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setWalkInEmail(e.target.value)}
                       className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      NID / Passport No *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1994827162910"
+                      value={walkInNid}
+                      onChange={(e) => setWalkInNid(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Permanent Address *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Village/Area, Thana, District"
+                      value={walkInAddress}
+                      onChange={(e) => setWalkInAddress(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Occupation *
+                    </label>
+                    <select
+                      value={walkInOccupation}
+                      onChange={(e) => setWalkInOccupation(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    >
+                      <option value="Private Service">Private Service</option>
+                      <option value="Business">Business</option>
+                      <option value="Govt Service">Govt Service</option>
+                      <option value="Expatriate">Expatriate / প্রবাসী</option>
+                      <option value="Student">Student</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Nationality *
+                    </label>
+                    <input
+                      type="text"
+                      value={walkInNationality}
+                      onChange={(e) => setWalkInNationality(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Allotted Room #
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 204"
+                      value={walkInAllottedRoom}
+                      onChange={(e) => setWalkInAllottedRoom(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Father/Husband Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Optional"
+                      value={walkInFatherOrHusband}
+                      onChange={(e) => setWalkInFatherOrHusband(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 uppercase font-bold mb-1">
+                      Purpose of Travel
+                    </label>
+                    <select
+                      value={walkInPurpose}
+                      onChange={(e) => setWalkInPurpose(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    >
+                      <option value="Airport Transit">Airport Transit</option>
+                      <option value="Hajj / Umrah">Hajj / Umrah</option>
+                      <option value="Business">Business</option>
+                      <option value="Medical">Medical</option>
+                      <option value="Family / Leisure">Family / Leisure</option>
+                    </select>
                   </div>
                 </div>
 

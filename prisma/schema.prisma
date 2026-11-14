@@ -34,6 +34,12 @@ model Booking {
   guestEmail      String
   guestPhone      String
   guestNidPassport String?
+  permanentAddress String?
+  occupation      String?
+  nationality     String?   @default("Bangladeshi")
+  fatherOrHusbandName String?
+  purposeOfTravel String?
+  allottedRoom    String?
   checkIn         DateTime
   checkOut        DateTime
   nights          Int
