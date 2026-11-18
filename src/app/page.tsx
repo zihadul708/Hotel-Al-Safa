@@ -31,6 +31,7 @@ import { FloatingActions } from "@/components/whatsapp-button";
 import { BookingModal } from "@/components/booking-modal";
 import { RoomDetailModal } from "@/components/room-detail-modal";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
+import { HOTEL_CONFIG, getWhatsAppUrl } from "@/lib/hotel-config";
 
 export interface RoomTypeData {
   id: string;
@@ -149,14 +150,14 @@ export default function HomePage() {
               />
             </motion.div>
 
-            {/* Top Star Rating Pill */}
+            {/* Top Quality Badge Pill */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-300 text-xs sm:text-sm font-medium tracking-wider uppercase"
             >
-              <span className="flex text-gold-400">★★★★★</span>
+              <Sparkles className="w-3.5 h-3.5 text-gold-400" />
               <span>Premier Airport Transit & Pilgrim Suites • Dhaka</span>
             </motion.div>
 
@@ -645,32 +646,44 @@ export default function HomePage() {
 
               {/* Map & Direction View */}
               <FadeIn direction="left" className="lg:col-span-2">
-                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-gold-400/50 shadow-md space-y-4">
+                  {/* Exact Location Header Badge */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-gray-100">
                     <div>
-                      <h3 className="font-serif font-bold text-lg text-gray-900">
-                        Hotel Al Safa Location Map
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-400/15 border border-gold-500/40 text-gold-700 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+                        <span>Exact Pinpoint Location</span>
+                      </div>
+                      <h3 className="font-serif font-bold text-xl text-gray-900 flex items-center gap-2">
+                        <span>Hotel Al Safa</span>
+                        <span className="text-xs font-sans font-normal text-gold-700 bg-gold-50 px-2 py-0.5 rounded border border-gold-200">
+                          Mili Super Tower-2
+                        </span>
                       </h3>
-                      <p className="text-xs text-gray-500">
-                        Mili Super Tower-2, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 flex items-start gap-1.5">
+                        <MapPin className="w-4 h-4 text-gold-600 flex-shrink-0 mt-0.5" />
+                        <span>Mili Super Tower-2, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230</span>
                       </p>
                     </div>
-                    <a
-                      href="https://maps.google.com/?q=Ashkona+Hajj+Camp+Dhaka"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-semibold underline"
-                    >
-                      <span>Open in Google Maps</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href="https://maps.google.com/?q=Hotel+Al+Safa+Mili+Super+Tower-2+Ashkona+Hajj+Camp+Road+Dakshinkhan+Dhaka"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition transform hover:-translate-y-0.5"
+                      >
+                        <Compass className="w-3.5 h-3.5" />
+                        <span>Open in Google Maps</span>
+                      </a>
+                    </div>
                   </div>
 
-                  {/* Google Map iframe simulation */}
-                  <div className="w-full h-72 rounded-xl overflow-hidden border border-gray-200 relative bg-gray-100">
+                  {/* Interactive Embedded Map Pinning Exact Hotel Location */}
+                  <div className="w-full h-80 rounded-xl overflow-hidden border-2 border-gold-400/30 relative bg-gray-100 shadow-inner">
                     <iframe
-                      title="Hotel Al Safa Location Map"
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14602.825225139039!2d90.40740924999999!3d23.85288285!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c6600c6d7fa5%3A0x6b63c4c9540c74cf!2sAshkona%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+                      title="Hotel Al Safa Exact Location Map"
+                      src="https://maps.google.com/maps?q=Mili+Super+Tower-2,+Ashkona+Hajj+Camp+Road,+Dakshinkhan,+Dhaka+1230&t=&z=16&ie=UTF8&iwloc=B&output=embed"
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -678,6 +691,46 @@ export default function HomePage() {
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                     />
+
+                    {/* Floating Exact Location Pill over Map */}
+                    <div className="absolute top-3 left-3 bg-[#070d18]/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl border border-gold-400/40 text-xs shadow-lg flex items-center gap-2 pointer-events-none">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                      <span className="font-semibold text-gold-300">Exact Spot:</span>
+                      <span className="font-medium text-gray-200">Mili Super Tower-2 (Reception)</span>
+                    </div>
+                  </div>
+
+                  {/* Landmark Navigation Guidance Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3 bg-[#fdfbf7] rounded-xl border border-gray-200 text-xs">
+                      <span className="font-bold text-gray-900 block mb-0.5">🏢 Building Landmark</span>
+                      <p className="text-gray-600">Mili Super Tower-2, prominently situated on Hajj Camp Road.</p>
+                    </div>
+                    <div className="p-3 bg-[#fdfbf7] rounded-xl border border-gray-200 text-xs">
+                      <span className="font-bold text-gray-900 block mb-0.5">🕋 Ashkona Hajj Camp</span>
+                      <p className="text-gray-600">Directly opposite the Hajj Camp entrance (3 mins walk).</p>
+                    </div>
+                    <div className="p-3 bg-[#fdfbf7] rounded-xl border border-gray-200 text-xs">
+                      <span className="font-bold text-gray-900 block mb-0.5">✈️ Airport Proximity</span>
+                      <p className="text-gray-600">Only 5 minutes drive from Dhaka Airport (DAC) Terminals 1 & 2.</p>
+                    </div>
+                  </div>
+
+                  {/* Need Directions Callout */}
+                  <div className="bg-gradient-to-r from-gold-50 to-amber-50/50 rounded-xl p-3 border border-gold-300/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-gray-800">
+                      <Phone className="w-4 h-4 text-gold-600 flex-shrink-0" />
+                      <span>Need directions on the way? Call Front Desk: <a href="tel:+8801916944212" className="font-bold text-gray-900 hover:text-gold-600 underline">+880 1916-944212</a></span>
+                    </div>
+                    <a
+                      href={getWhatsAppUrl("Hello Hotel Al Safa, I am on the way to Mili Super Tower-2. Please send road directions.")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-emerald-700 bg-white border border-emerald-300 hover:bg-emerald-50 px-3 py-1.5 rounded-lg font-bold transition flex-shrink-0"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                      <span>WhatsApp Directions</span>
+                    </a>
                   </div>
                 </div>
               </FadeIn>
@@ -710,7 +763,7 @@ export default function HomePage() {
                   name: "Capt. Farhan Chowdhury",
                   loc: "Dhaka Transit Traveler",
                   quote:
-                    "Super convenient location right by the airport! The pickup driver was waiting at the arrival exit, room was impeccably clean with crisp AC, and hot breakfast was ready early morning. Best transit stay in Dhaka.",
+                    "Super convenient location right by the airport! The reception team welcomed us promptly even at our late night arrival, room was impeccably clean with crisp AC, and hot breakfast was ready early morning. Best transit stay in Dhaka.",
                   room: "Couple AC Deluxe",
                 },
                 {

@@ -11,6 +11,14 @@ export const HOTEL_CONFIG = {
   phoneDisplay: "+880 1916-944212",
   email: "hotelalsafainternational1@gmail.com",
 
+  // Social Media Links
+  socialLinks: {
+    facebook: "https://www.facebook.com/hotelalsafadhaka",
+    instagram: "https://www.instagram.com/hotelalsafadhaka",
+    youtube: "https://www.youtube.com/@hotelalsafadhaka",
+    whatsapp: "https://wa.me/8801916944212",
+  },
+
   // Official Payment Accounts
   payments: {
     bkashMerchant: {
