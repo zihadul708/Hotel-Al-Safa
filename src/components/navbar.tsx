@@ -3,79 +3,48 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, Clock, MessageCircle, Menu, X, Calendar, ShieldCheck } from "lucide-react";
-import { HOTEL_CONFIG, getWhatsAppUrl } from "@/lib/hotel-config";
+import { Phone, Mail, MapPin, Clock, Sparkles, Menu, X, Calendar } from "lucide-react";
+import { HOTEL_CONFIG } from "@/lib/hotel-config";
 
 export function TopBar() {
-  const waUrl = getWhatsAppUrl("Hello Hotel Al Safa, I would like to inquire about room availability");
-
   return (
-    <div className="bg-[#070b14] text-gray-300 text-xs border-b border-[#1a2333] py-2 px-3 sm:px-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Mobile View: Two clean, touch-friendly direct actions */}
-        <div className="flex md:hidden items-center justify-between w-full">
-          <a
-            href={`tel:${HOTEL_CONFIG.phonePrimary}`}
-            className="flex items-center gap-1.5 text-gray-200 hover:text-gold-400 font-medium active:scale-95 transition-all"
-          >
-            <div className="w-6 h-6 rounded-full bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400">
-              <Phone className="w-3 h-3" />
-            </div>
-            <span className="text-[12px] font-bold text-white tracking-tight">{HOTEL_CONFIG.phoneDisplay}</span>
-          </a>
-
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] px-2.5 py-1 rounded-full font-semibold text-[11px] active:scale-95 transition-all"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span>WhatsApp</span>
-          </a>
-        </div>
-
-        {/* Desktop View (>= md): Full clean info bar */}
-        <div className="hidden md:flex items-center justify-between w-full">
-          <div className="flex items-center gap-4 text-[13px]">
+    <div className="bg-[#070b14] text-gray-300 text-xs border-b border-[#1a2333] py-2 overflow-hidden">
+      <div className="marquee-track">
+        {[0, 1].map((copy) => (
+          <div key={copy} className="flex items-center flex-shrink-0">
+            <span className="flex items-center gap-1.5 px-6 whitespace-nowrap font-semibold text-gold-300">
+              <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+              Welcome To Hotel Al Safa International
+            </span>
+            <span className="text-gray-600 px-2">|</span>
             <a
               href={`tel:${HOTEL_CONFIG.phonePrimary}`}
-              className="flex items-center gap-1.5 hover:text-gold-400 transition-colors font-medium text-white"
+              className="flex items-center gap-1.5 px-6 whitespace-nowrap hover:text-gold-400 transition-colors"
             >
               <Phone className="w-3.5 h-3.5 text-gold-400" />
-              <span>{HOTEL_CONFIG.phoneDisplay}</span>
+              {HOTEL_CONFIG.phoneDisplay}
             </a>
-            <span className="text-gray-600">|</span>
+            <span className="text-gray-600 px-2">|</span>
             <a
               href={`mailto:${HOTEL_CONFIG.email}`}
-              className="hidden lg:flex items-center gap-1.5 hover:text-gold-400 transition-colors"
+              className="flex items-center gap-1.5 px-6 whitespace-nowrap hover:text-gold-400 transition-colors"
             >
               <Mail className="w-3.5 h-3.5 text-gold-400" />
-              <span>{HOTEL_CONFIG.email}</span>
+              {HOTEL_CONFIG.email}
             </a>
-            <span className="hidden lg:inline text-gray-600">|</span>
-            <div className="flex items-center gap-1.5 text-gray-400">
-              <MapPin className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
-              <span className="truncate">Mili Super Tower-2, Ashkona, Dhaka-1230</span>
-            </div>
+            <span className="text-gray-600 px-2">|</span>
+            <span className="flex items-center gap-1.5 px-6 whitespace-nowrap">
+              <MapPin className="w-3.5 h-3.5 text-gold-400" />
+              Mili Super Tower-2, Ashkona, Dhaka-1230
+            </span>
+            <span className="text-gray-600 px-2">|</span>
+            <span className="flex items-center gap-1.5 px-6 whitespace-nowrap">
+              <Clock className="w-3.5 h-3.5 text-gold-400" />
+              24/7 Front Desk & Concierge
+            </span>
+            <span className="text-gray-600 px-2">|</span>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center gap-1.5 text-gold-400/90 font-medium text-xs">
-              <Clock className="w-3.5 h-3.5" />
-              <span>24/7 Front Desk & Concierge</span>
-            </div>
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] px-3 py-1 rounded-full font-semibold transition-all text-xs"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp: 01916944212</span>
-            </a>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

@@ -52,6 +52,22 @@ body {
   box-shadow: 0 20px 30px -10px rgba(184, 147, 38, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
 }
 
+/* Top bar marquee ticker */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

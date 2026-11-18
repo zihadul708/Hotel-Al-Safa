@@ -161,7 +161,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-gray-900 flex flex-col font-sans selection:bg-gold-400 selection:text-black">
-      {/* Top Contact Bar */}
+      {/* Top Contact Marquee */}
       <TopBar />
 
       {/* Main Navigation */}
