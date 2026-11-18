@@ -19,11 +19,15 @@ import {
   Coffee,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   Clock,
   UtensilsCrossed,
   ArrowRight,
   Star,
   Compass,
+  HeartHandshake,
+  BookOpen,
+  Award,
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -49,10 +53,57 @@ export interface RoomTypeData {
   featured: boolean;
 }
 
+// Hero Rotating Moving Images
+const heroSlides = [
+  {
+    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2000&q=85",
+    tag: "Airport Transit Hotel & Luxury Facade",
+    title: "Your Peaceful Haven Just 5 Minutes from Dhaka Airport",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=2000&q=85",
+    tag: "Deluxe Air-Conditioned Comfort",
+    title: "Soundproof Rooms Designed for International Rest",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=2000&q=85",
+    tag: "Ashkona Hajj & Umrah Specialists",
+    title: "Spacious Suites 3 Minutes Walk from Hajj Camp",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=2000&q=85",
+    tag: "24/7 Front Desk & Concierge",
+    title: "Warm Bangladeshi Hospitality at Any Arrival Hour",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=2000&q=85",
+    tag: "Modern Amenities & 100% Power Backup",
+    title: "High-Speed Fiber Wi-Fi, Geyser & Continuous Generator",
+  },
+];
+
 export default function HomePage() {
   const [rooms, setRooms] = useState<RoomTypeData[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
+
+  // Hero Moving Slides State
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
 
   // Booking Modal State
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -118,22 +169,56 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* ========================================================= */}
-        {/* HERO SECTION WITH ENHANCED INTRO ANIMATIONS               */}
+        {/* HERO SECTION WITH MOVING BACKGROUND IMAGES SLIDER        */}
         {/* ========================================================= */}
-        <section className="relative min-h-[660px] lg:min-h-[740px] flex items-center justify-center bg-[#070d18] text-white overflow-hidden py-16 px-4">
-          {/* Background Image with dark luxury overlay */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2000&q=85"
-              alt="Hotel Al Safa Luxury Facade"
-              fill
-              className="object-cover opacity-35 transform scale-105 transition-transform duration-1000"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070d18] via-[#070d18]/60 to-transparent" />
+        <section className="relative min-h-[680px] lg:min-h-[760px] flex items-center justify-center bg-[#070d18] text-white overflow-hidden py-16 px-4">
+          {/* Moving Background Image Slides with Ken Burns Smooth Transition */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            {heroSlides.map((slide, index) => {
+              const isActive = index === currentSlide;
+              return (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    isActive
+                      ? "opacity-40 scale-105 z-10"
+                      : "opacity-0 scale-100 z-0 pointer-events-none"
+                  }`}
+                >
+                  <Image
+                    src={slide.image}
+                    alt={slide.title}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+              );
+            })}
+            {/* Multi-layered luxury dark gradient overlay */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#070d18] via-[#070d18]/65 to-[#070d18]/50" />
+            <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#070d18]/40 via-transparent to-[#070d18]/40" />
           </div>
 
-          <div className="relative z-10 max-w-5xl mx-auto text-center space-y-5">
+          {/* Left / Right Carousel Arrow Controls */}
+          <div className="hidden md:flex absolute inset-y-0 left-4 right-4 z-30 items-center justify-between pointer-events-none">
+            <button
+              onClick={handlePrevSlide}
+              aria-label="Previous Slide"
+              className="pointer-events-auto w-11 h-11 rounded-full bg-black/45 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white hover:text-gold-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={handleNextSlide}
+              aria-label="Next Slide"
+              className="pointer-events-auto w-11 h-11 rounded-full bg-black/45 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white hover:text-gold-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="relative z-20 max-w-5xl mx-auto text-center space-y-5">
             {/* Royal Crest Logo in Hero */}
             <motion.div
               initial={{ opacity: 0, y: -24, scale: 0.96 }}
@@ -150,15 +235,15 @@ export default function HomePage() {
               />
             </motion.div>
 
-            {/* Top Quality Badge Pill */}
+            {/* Top Quality Badge Pill & Slide Tag */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-300 text-xs sm:text-sm font-medium tracking-wider uppercase"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-300 text-xs sm:text-sm font-medium tracking-wider uppercase backdrop-blur-md"
             >
               <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-              <span>Premier Airport Transit & Pilgrim Suites • Dhaka</span>
+              <span>{heroSlides[currentSlide].tag}</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -286,6 +371,25 @@ export default function HomePage() {
                 </div>
               </div>
             </motion.div>
+
+            {/* Slide Navigation Dots & Counter */}
+            <div className="pt-3 flex items-center justify-center gap-2">
+              {heroSlides.map((slide, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  aria-label={`Go to hero slide ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full h-2.5 ${
+                    idx === currentSlide
+                      ? "w-9 bg-gold-400 shadow-md shadow-gold-400/50"
+                      : "w-2.5 bg-white/40 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+              <span className="text-[11px] text-gold-300/80 ml-2 font-mono">
+                {String(currentSlide + 1).padStart(2, "0")} / {String(heroSlides.length).padStart(2, "0")}
+              </span>
+            </div>
           </div>
         </section>
 
@@ -355,6 +459,152 @@ export default function HomePage() {
         </section>
 
         {/* ========================================================= */}
+        {/* OUR STORY & HOSPITALITY HERITAGE (SCROLL ANIMATED)        */}
+        {/* ========================================================= */}
+        <section id="story" className="py-20 lg:py-24 bg-gradient-to-b from-white via-[#faf7f2] to-[#f4efe4] border-b border-gray-200 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+              {/* Left Column: Visual Collage */}
+              <FadeIn direction="right" className="lg:col-span-5 relative">
+                <div className="relative">
+                  {/* Main Primary Image */}
+                  <div className="relative h-[380px] sm:h-[450px] w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                    <Image
+                      src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=85"
+                      alt="Hotel Al Safa Warm Hospitality & Reception"
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                    
+                    <div className="absolute bottom-5 left-5 right-5 text-white">
+                      <span className="text-[11px] uppercase tracking-wider text-gold-300 font-semibold block mb-1">
+                        Ashkona, Hajj Camp Road, Dhaka
+                      </span>
+                      <h4 className="font-serif font-bold text-lg sm:text-xl leading-snug">
+                        A Tranquil Haven for Transit Travelers & Pilgrims
+                      </h4>
+                    </div>
+                  </div>
+
+                  {/* Overlapping Floating Secondary Image Card */}
+                  <div className="hidden sm:block absolute -bottom-8 -right-6 w-56 h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-gray-900">
+                    <Image
+                      src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=85"
+                      alt="Soundproof Suite Interior"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
+                      <span className="font-bold text-gold-400">100% Soundproof</span>
+                      <p className="text-[10px] text-gray-300">Quiet rest away from city noise</p>
+                    </div>
+                  </div>
+
+                  {/* Floating Trust Badge */}
+                  <div className="absolute -top-4 -left-4 bg-[#070d18] text-white p-4 rounded-2xl border border-gold-500/40 shadow-xl max-w-[210px]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <HeartHandshake className="w-5 h-5 text-gold-400" />
+                      <span className="text-xs font-bold text-gold-300 uppercase tracking-wider">Our Heritage</span>
+                    </div>
+                    <p className="text-xs text-gray-300 leading-snug">
+                      Devoted to pilgrim comfort & stress-free flight transit.
+                    </p>
+                  </div>
+                </div>
+              </FadeIn>
+
+              {/* Right Column: Story Narrative */}
+              <FadeIn direction="left" className="lg:col-span-7 space-y-6">
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-700 text-xs font-bold uppercase tracking-wider">
+                    <BookOpen className="w-3.5 h-3.5 text-gold-600" />
+                    <span>Our Story & Mission</span>
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-gray-900 leading-tight">
+                    Crafted for Peaceful Rest at <span className="gold-text-gradient">Dhaka’s Gateway</span>
+                  </h2>
+                </div>
+
+                <div className="space-y-4 text-sm sm:text-base text-gray-600 leading-relaxed">
+                  <p>
+                    Gracefully positioned in Ashkona (Mili Super Tower-2), directly opposite the historic <strong>Ashkona Hajj Camp</strong> and merely <strong>5 minutes from Hazrat Shahjalal International Airport</strong>, <strong>Hotel Al Safa</strong> was established with a singular devotion: to provide an authentic sanctuary of peace, dignity, and sincere Bangladeshi hospitality for international travelers and pilgrims.
+                  </p>
+                  <p>
+                    We understand that flight layovers, long-haul journeys, and sacred pilgrimages demand quietude and seamless convenience. Located outside congested central Dhaka traffic, Hotel Al Safa is engineered for restful silence—featuring soundproof AC rooms, 24-hour hot geysers, high-speed fiber Wi-Fi, and 100% round-the-clock power generator backup.
+                  </p>
+                  <p>
+                    Whether embarking on an Umrah or Hajj journey, resting between flight connections, or visiting Dhaka for business, our 24/7 reception desk welcomes you warmly at any hour of the day or night.
+                  </p>
+                </div>
+
+                {/* Key Story Pillars Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <Compass className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-gray-900">Pilgrim Sanctuary</h4>
+                      <p className="text-xs text-gray-500">3-minute walk to Ashkona Hajj Camp for easy pilgrimage transit.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-gray-900">24/7 Warm Welcome</h4>
+                      <p className="text-xs text-gray-500">Immediate check-in for delayed midnight or early dawn arrivals.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-gray-900">100% Halal & Secure</h4>
+                      <p className="text-xs text-gray-500">Compliant with DMP Sec-27, CCTV security, and safe family stay.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-gray-900">Transparent Pricing</h4>
+                    <p className="text-xs text-gray-500">Honest rates in BDT, zero hidden surcharges, direct instant booking.</p>
+                  </div>
+                </div>
+
+                {/* Trust Quote / Signature */}
+                <div className="pt-3 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="italic text-xs sm:text-sm text-gray-600 border-l-2 border-gold-500 pl-3">
+                    "We do not merely offer rooms—we offer peace of mind when you need it most."
+                    <span className="block font-semibold text-gray-800 not-italic text-xs mt-0.5">
+                      — Hotel Al Safa Management Team
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="#rooms"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition transform hover:-translate-y-0.5"
+                    >
+                      <span>Explore Rooms</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              </FadeIn>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
         {/* ROOMS & SUITES SECTION (SCROLL ANIMATED)                  */}
         {/* ========================================================= */}
         <section id="rooms" className="py-20 bg-[#f8f5ee]">
@@ -411,7 +661,10 @@ export default function HomePage() {
 
                   return (
                     <StaggerItem key={room.id}>
-                      <div className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full transform hover:-translate-y-1.5">
+                      <div
+                        onClick={() => handleOpenDetails(room)}
+                        className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full transform hover:-translate-y-1.5 cursor-pointer"
+                      >
                         {/* Image Preview Container */}
                         <div className="relative h-60 w-full overflow-hidden bg-gray-900">
                           <Image
@@ -486,13 +739,19 @@ export default function HomePage() {
                           {/* Action Buttons */}
                           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
                             <button
-                              onClick={() => handleOpenDetails(room)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDetails(room);
+                              }}
                               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold py-2.5 rounded-xl transition text-center"
                             >
                               View Details
                             </button>
                             <button
-                              onClick={() => handleOpenBooking(room.slug)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenBooking(room.slug);
+                              }}
                               className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black text-xs font-bold py-2.5 rounded-xl transition shadow shadow-gold-500/20 text-center"
                             >
                               Book Now

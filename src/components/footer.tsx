@@ -332,6 +332,10 @@ export function Footer() {
           
           {/* Footer Option Links */}
           <div className="flex flex-wrap items-center justify-center gap-4 text-gray-400">
+            <Link href="/#story" className="hover:text-gold-400 transition-colors">
+              Our Story
+            </Link>
+            <span className="text-gray-700">•</span>
             <Link href="/terms" className="hover:text-gold-400 transition-colors">
               Terms & Conditions
             </Link>

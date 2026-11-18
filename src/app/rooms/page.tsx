@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Filter,
@@ -28,6 +29,7 @@ import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 import { RoomTypeData } from "@/app/page";
 
 export default function RoomsPage() {
+  const router = useRouter();
   const [rooms, setRooms] = useState<RoomTypeData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -234,7 +236,8 @@ export default function RoomsPage() {
                 return (
                   <div
                     key={room.id}
-                    className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                    onClick={() => router.push(`/rooms/${room.slug}`)}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer transform hover:-translate-y-1"
                   >
                     <div>
                       {/* Image Preview Container */}
@@ -320,12 +323,16 @@ export default function RoomsPage() {
                     <div className="p-5 pt-0 grid grid-cols-2 gap-2">
                       <Link
                         href={`/rooms/${room.slug}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="w-full text-center py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition"
                       >
                         Full Details
                       </Link>
                       <button
-                        onClick={() => handleOpenBooking(room.slug)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenBooking(room.slug);
+                        }}
                         className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-500 text-black font-bold text-xs py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1"
                       >
                         <Calendar className="w-3.5 h-3.5" />

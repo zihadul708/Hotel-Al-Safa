@@ -95,6 +95,7 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
 
   const navLinks = [
     { label: "Home", href: "/" },
+    { label: "Our Story", href: "/#story" },
     { label: "Rooms & Suites", href: "/rooms" },
     { label: "Location", href: "/#location" },
     { label: "Contact", href: "/contact" },
