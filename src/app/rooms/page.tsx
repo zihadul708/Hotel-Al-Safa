@@ -324,7 +324,7 @@ export default function RoomsPage() {
                       <Link
                         href={`/rooms/${room.slug}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full text-center py-2.5 rounded-xl border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-black transition"
+                        className="w-full text-center py-2.5 rounded-xl border border-gray-200/90 hover:border-gold-400/60 bg-gray-50 hover:bg-gold-50/80 text-xs font-semibold text-gray-700 hover:text-gray-900 transition-all duration-300 ease-out hover:shadow-sm flex items-center justify-center"
                       >
                         Full Details
                       </Link>
@@ -333,10 +333,11 @@ export default function RoomsPage() {
                           e.stopPropagation();
                           handleOpenBooking(room.slug);
                         }}
-                        className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-500 text-black font-bold text-xs py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1"
+                        className="group/book w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black font-bold text-xs py-2.5 rounded-xl shadow-md shadow-gold-500/20 hover:shadow-lg hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out flex items-center justify-center gap-1.5"
                       >
-                        <Calendar className="w-3.5 h-3.5" />
+                        <Calendar className="w-3.5 h-3.5 group-hover/book:scale-110 transition-transform duration-300" />
                         <span>Book Online</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/book:translate-x-0.5 transition-transform duration-300" />
                       </button>
                     </div>
                   </div>

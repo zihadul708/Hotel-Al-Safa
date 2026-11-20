@@ -139,9 +139,9 @@ export function Footer() {
               />
             </div>
             <div>
-              <span className="text-xl font-serif font-bold text-white tracking-wide block">HOTEL AL SAFA</span>
+              <span className="text-xl font-serif font-bold text-white tracking-wide block">Hotel Al Safa International</span>
               <p className="text-[10px] text-gold-400 uppercase tracking-widest font-semibold mt-0.5">
-                Transit Hotel & Suites
+                Luxury Airport Transit Hotel
               </p>
             </div>
           </div>
@@ -349,7 +349,7 @@ export function Footer() {
             </Link>
             <span className="text-gray-700">•</span>
             <a
-              href="https://maps.google.com/?q=Hotel+Al+Safa+Mili+Super+Tower-2+Ashkona+Dhaka"
+              href="https://maps.app.goo.gl/4MH89QCucKXE5hHv5"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-gold-400 transition-colors"

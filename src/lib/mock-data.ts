@@ -575,6 +575,26 @@ export const fallbackStore = {
     return rooms[idx];
   },
 
+  addRoom(roomData: Omit<FallbackRoomType, "id" | "createdAt" | "updatedAt">): FallbackRoomType {
+    const rooms = this.getRooms();
+    const newRoom: FallbackRoomType = {
+      ...roomData,
+      id: `room-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    rooms.push(newRoom);
+    return newRoom;
+  },
+
+  deleteRoom(id: string): boolean {
+    const rooms = this.getRooms();
+    const idx = rooms.findIndex((r) => r.id === id || r.slug === id);
+    if (idx === -1) return false;
+    rooms.splice(idx, 1);
+    return true;
+  },
+
   getBookings(): FallbackBooking[] {
     return globalStore.__AL_SAFA_BOOKINGS ?? INITIAL_BOOKINGS;
   },

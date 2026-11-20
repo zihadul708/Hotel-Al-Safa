@@ -28,6 +28,7 @@ import {
   HeartHandshake,
   BookOpen,
   Award,
+  ExternalLink,
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -342,10 +343,11 @@ export default function HomePage() {
                   <div>
                     <button
                       onClick={() => handleOpenBooking(selectedRoomSlug)}
-                      className="w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 hover:from-gold-400 hover:to-gold-500 text-black font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-gold-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-sm flex items-center justify-center gap-2"
+                      className="group w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-gold-500/25 hover:shadow-xl hover:shadow-gold-500/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out text-sm flex items-center justify-center gap-2"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 text-black group-hover:rotate-12 transition-transform duration-300" />
                       <span>Check Rates & Book</span>
+                      <ArrowRight className="w-4 h-4 text-black/80 group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
                   </div>
                 </div>
@@ -461,54 +463,54 @@ export default function HomePage() {
         {/* ========================================================= */}
         {/* OUR STORY & HOSPITALITY HERITAGE (SCROLL ANIMATED)        */}
         {/* ========================================================= */}
-        <section id="story" className="py-20 lg:py-24 bg-gradient-to-b from-white via-[#faf7f2] to-[#f4efe4] border-b border-gray-200 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+        <section id="story" className="py-14 sm:py-20 lg:py-24 bg-gradient-to-b from-white via-[#faf7f2] to-[#f4efe4] border-b border-gray-200 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 lg:gap-14 items-center">
               {/* Left Column: Visual Collage */}
-              <FadeIn direction="right" className="lg:col-span-5 relative">
+              <FadeIn direction="right" className="lg:col-span-5 relative mb-4 sm:mb-6 lg:mb-0">
                 <div className="relative">
                   {/* Main Primary Image */}
-                  <div className="relative h-[380px] sm:h-[450px] w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                  <div className="relative h-[280px] xs:h-[340px] sm:h-[420px] lg:h-[460px] w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white">
                     <Image
                       src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=85"
                       alt="Hotel Al Safa Warm Hospitality & Reception"
                       fill
                       className="object-cover hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                     
-                    <div className="absolute bottom-5 left-5 right-5 text-white">
-                      <span className="text-[11px] uppercase tracking-wider text-gold-300 font-semibold block mb-1">
+                    <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 text-white">
+                      <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-gold-300 font-semibold block mb-1">
                         Ashkona, Hajj Camp Road, Dhaka
                       </span>
-                      <h4 className="font-serif font-bold text-lg sm:text-xl leading-snug">
+                      <h4 className="font-serif font-bold text-base sm:text-xl leading-snug">
                         A Tranquil Haven for Transit Travelers & Pilgrims
                       </h4>
                     </div>
                   </div>
 
-                  {/* Overlapping Floating Secondary Image Card */}
-                  <div className="hidden sm:block absolute -bottom-8 -right-6 w-56 h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-gray-900">
+                  {/* Overlapping Floating Secondary Image Card (Tablet & Desktop) */}
+                  <div className="hidden sm:block absolute -bottom-5 sm:-bottom-6 -right-2 sm:-right-4 lg:-right-6 w-48 sm:w-52 lg:w-56 h-36 sm:h-44 lg:h-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-gray-900 z-10">
                     <Image
                       src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=85"
                       alt="Soundproof Suite Interior"
                       fill
                       className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
-                      <span className="font-bold text-gold-400">100% Soundproof</span>
+                      <span className="font-bold text-gold-400 block text-xs">100% Soundproof</span>
                       <p className="text-[10px] text-gray-300">Quiet rest away from city noise</p>
                     </div>
                   </div>
 
                   {/* Floating Trust Badge */}
-                  <div className="absolute -top-4 -left-4 bg-[#070d18] text-white p-4 rounded-2xl border border-gold-500/40 shadow-xl max-w-[210px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <HeartHandshake className="w-5 h-5 text-gold-400" />
-                      <span className="text-xs font-bold text-gold-300 uppercase tracking-wider">Our Heritage</span>
+                  <div className="absolute top-3 left-3 sm:-top-3 sm:-left-3 lg:-top-4 lg:-left-4 z-10 bg-[#070d18]/95 backdrop-blur-md text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gold-500/40 shadow-xl max-w-[190px] sm:max-w-[210px]">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                      <HeartHandshake className="w-4 h-4 sm:w-5 sm:h-5 text-gold-400 flex-shrink-0" />
+                      <span className="text-[11px] sm:text-xs font-bold text-gold-300 uppercase tracking-wider">Our Heritage</span>
                     </div>
-                    <p className="text-xs text-gray-300 leading-snug">
+                    <p className="text-[11px] sm:text-xs text-gray-300 leading-snug">
                       Devoted to pilgrim comfort & stress-free flight transit.
                     </p>
                   </div>
@@ -516,20 +518,20 @@ export default function HomePage() {
               </FadeIn>
 
               {/* Right Column: Story Narrative */}
-              <FadeIn direction="left" className="lg:col-span-7 space-y-6">
-                <div className="space-y-3">
+              <FadeIn direction="left" className="lg:col-span-7 space-y-5 sm:space-y-6">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-700 text-xs font-bold uppercase tracking-wider">
                     <BookOpen className="w-3.5 h-3.5 text-gold-600" />
                     <span>Our Story & Mission</span>
                   </div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-gray-900 leading-tight">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-gray-900 leading-tight">
                     Crafted for Peaceful Rest at <span className="gold-text-gradient">Dhaka’s Gateway</span>
                   </h2>
                 </div>
 
-                <div className="space-y-4 text-sm sm:text-base text-gray-600 leading-relaxed">
+                <div className="space-y-3 sm:space-y-4 text-sm sm:text-base text-gray-600 leading-relaxed">
                   <p>
-                    Gracefully positioned in Ashkona (Mili Super Tower-2), directly opposite the historic <strong>Ashkona Hajj Camp</strong> and merely <strong>5 minutes from Hazrat Shahjalal International Airport</strong>, <strong>Hotel Al Safa</strong> was established with a singular devotion: to provide an authentic sanctuary of peace, dignity, and sincere Bangladeshi hospitality for international travelers and pilgrims.
+                    Gracefully positioned in Ashkona (Mili Super Tower-2), directly opposite the historic <strong>Ashkona Hajj Camp</strong> and merely <strong>5 minutes from Hazrat Shahjalal International Airport</strong>, <strong>Hotel Al Safa International</strong> was established with a singular devotion: to provide an authentic sanctuary of peace, dignity, and sincere Bangladeshi hospitality for international travelers and pilgrims.
                   </p>
                   <p>
                     We understand that flight layovers, long-haul journeys, and sacred pilgrimages demand quietude and seamless convenience. Located outside congested central Dhaka traffic, Hotel Al Safa is engineered for restful silence—featuring soundproof AC rooms, 24-hour hot geysers, high-speed fiber Wi-Fi, and 100% round-the-clock power generator backup.
@@ -540,62 +542,64 @@ export default function HomePage() {
                 </div>
 
                 {/* Key Story Pillars Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
-                      <Compass className="w-4 h-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 pt-1 sm:pt-2">
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-gold-300/60 transition-all flex items-start gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <Compass className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </div>
                     <div>
                       <h4 className="font-bold text-xs sm:text-sm text-gray-900">Pilgrim Sanctuary</h4>
-                      <p className="text-xs text-gray-500">3-minute walk to Ashkona Hajj Camp for easy pilgrimage transit.</p>
+                      <p className="text-xs text-gray-500 mt-0.5">3-minute walk to Ashkona Hajj Camp for easy pilgrimage transit.</p>
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
-                      <Clock className="w-4 h-4" />
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-gold-300/60 transition-all flex items-start gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <Clock className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </div>
                     <div>
                       <h4 className="font-bold text-xs sm:text-sm text-gray-900">24/7 Warm Welcome</h4>
-                      <p className="text-xs text-gray-500">Immediate check-in for delayed midnight or early dawn arrivals.</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Immediate check-in for delayed midnight or early dawn arrivals.</p>
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-white border border-gray-200/90 shadow-sm flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
-                      <ShieldCheck className="w-4 h-4" />
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-gold-300/60 transition-all flex items-start gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </div>
                     <div>
                       <h4 className="font-bold text-xs sm:text-sm text-gray-900">100% Halal & Secure</h4>
-                      <p className="text-xs text-gray-500">Compliant with DMP Sec-27, CCTV security, and safe family stay.</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Compliant with DMP Sec-27, CCTV security, and safe family stay.</p>
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-white border border-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-gray-900">Transparent Pricing</h4>
-                    <p className="text-xs text-gray-500">Honest rates in BDT, zero hidden surcharges, direct instant booking.</p>
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-gray-200/90 shadow-sm hover:shadow-md hover:border-gold-300/60 transition-all flex items-start gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gold-400/15 border border-gold-400/30 flex items-center justify-center text-gold-700 flex-shrink-0 mt-0.5">
+                      <Sparkles className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-gray-900">Transparent Pricing</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">Honest rates in BDT, zero hidden surcharges, direct instant booking.</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Trust Quote / Signature */}
-                <div className="pt-3 border-t border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="pt-3 sm:pt-4 border-t border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                   <div className="italic text-xs sm:text-sm text-gray-600 border-l-2 border-gold-500 pl-3">
                     "We do not merely offer rooms—we offer peace of mind when you need it most."
                     <span className="block font-semibold text-gray-800 not-italic text-xs mt-0.5">
-                      — Hotel Al Safa Management Team
+                      — Hotel Al Safa International Team
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center sm:flex-shrink-0">
                     <a
                       href="#rooms"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition transform hover:-translate-y-0.5"
+                      className="group relative inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm text-gray-950 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 shadow-md hover:shadow-lg transition-all duration-300"
                     >
                       <span>Explore Rooms</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </a>
                   </div>
                 </div>
@@ -743,7 +747,7 @@ export default function HomePage() {
                                 e.stopPropagation();
                                 handleOpenDetails(room);
                               }}
-                              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold py-2.5 rounded-xl transition text-center"
+                              className="w-full bg-gray-50 hover:bg-gold-50/80 text-gray-700 hover:text-gray-900 border border-gray-200/90 hover:border-gold-400/60 text-xs font-semibold py-2.5 rounded-xl transition-all duration-300 ease-out text-center hover:shadow-sm"
                             >
                               View Details
                             </button>
@@ -752,9 +756,10 @@ export default function HomePage() {
                                 e.stopPropagation();
                                 handleOpenBooking(room.slug);
                               }}
-                              className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black text-xs font-bold py-2.5 rounded-xl transition shadow shadow-gold-500/20 text-center"
+                              className="group/book w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black text-xs font-bold py-2.5 rounded-xl shadow-md shadow-gold-500/20 hover:shadow-lg hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out flex items-center justify-center gap-1.5"
                             >
-                              Book Now
+                              <span>Book Now</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover/book:translate-x-1 transition-transform duration-300" />
                             </button>
                           </div>
                         </div>
@@ -914,7 +919,7 @@ export default function HomePage() {
                         <span>Exact Pinpoint Location</span>
                       </div>
                       <h3 className="font-serif font-bold text-xl text-gray-900 flex items-center gap-2">
-                        <span>Hotel Al Safa</span>
+                        <span>Hotel Al Safa International</span>
                         <span className="text-xs font-sans font-normal text-gold-700 bg-gold-50 px-2 py-0.5 rounded border border-gold-200">
                           Mili Super Tower-2
                         </span>
@@ -925,15 +930,24 @@ export default function HomePage() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <a
-                        href="https://maps.google.com/?q=Hotel+Al+Safa+Mili+Super+Tower-2+Ashkona+Hajj+Camp+Road+Dakshinkhan+Dhaka"
+                        href="https://maps.app.goo.gl/4MH89QCucKXE5hHv5"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition transform hover:-translate-y-0.5"
+                        className="group inline-flex items-center gap-2 bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-gold-500/20 hover:shadow-xl hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out"
                       >
-                        <Compass className="w-3.5 h-3.5" />
+                        <Compass className="w-4 h-4 text-black group-hover:rotate-45 transition-transform duration-500 ease-out" />
                         <span>Open in Google Maps</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-black/80 group-hover:translate-x-1 transition-transform duration-300" />
+                      </a>
+
+                      <a
+                        href={`tel:${HOTEL_CONFIG.phonePrimary}`}
+                        className="inline-flex items-center gap-2 bg-white hover:bg-gold-50 text-gray-800 hover:text-black text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-300 hover:border-gold-400 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-gold-600" />
+                        <span>Call Front Desk</span>
                       </a>
                     </div>
                   </div>
@@ -941,8 +955,8 @@ export default function HomePage() {
                   {/* Interactive Embedded Map Pinning Exact Hotel Location */}
                   <div className="w-full h-80 rounded-xl overflow-hidden border-2 border-gold-400/30 relative bg-gray-100 shadow-inner">
                     <iframe
-                      title="Hotel Al Safa Exact Location Map"
-                      src="https://maps.google.com/maps?q=Mili+Super+Tower-2,+Ashkona+Hajj+Camp+Road,+Dakshinkhan,+Dhaka+1230&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+                      title="Hotel Al Safa International Exact Location Map"
+                      src="https://maps.google.com/maps?q=23.8516087,90.4145012+(Hotel+Al+Safa+International)&t=&z=17&ie=UTF8&iwloc=B&output=embed"
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -951,12 +965,18 @@ export default function HomePage() {
                       referrerPolicy="no-referrer-when-downgrade"
                     />
 
-                    {/* Floating Exact Location Pill over Map */}
-                    <div className="absolute top-3 left-3 bg-[#070d18]/90 backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl border border-gold-400/40 text-xs shadow-lg flex items-center gap-2 pointer-events-none">
+                    {/* Floating Exact Location Pill over Map linking to Google Maps */}
+                    <a
+                      href="https://maps.app.goo.gl/4MH89QCucKXE5hHv5"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group absolute top-3 left-3 bg-[#070d18]/90 hover:bg-[#070d18] transition-all backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl border border-gold-400/40 text-xs shadow-lg flex items-center gap-2 cursor-pointer hover:border-gold-400"
+                    >
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
                       <span className="font-semibold text-gold-300">Exact Spot:</span>
-                      <span className="font-medium text-gray-200">Mili Super Tower-2 (Reception)</span>
-                    </div>
+                      <span className="font-medium text-gray-200">Hotel Al Safa International</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-gold-400 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
+                    </a>
                   </div>
 
                   {/* Landmark Navigation Guidance Grid */}
@@ -1082,15 +1102,17 @@ export default function HomePage() {
               <div className="flex flex-wrap justify-center gap-4 pt-2">
                 <button
                   onClick={() => handleOpenBooking()}
-                  className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-8 py-3.5 rounded-full shadow-xl transition transform hover:scale-105"
+                  className="group inline-flex items-center gap-2.5 bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black font-bold px-8 py-3.5 rounded-full shadow-xl shadow-gold-500/20 hover:shadow-2xl hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out text-sm sm:text-base"
                 >
-                  Book Your Room Now
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-black group-hover:scale-110 transition-transform duration-300" />
+                  <span>Book Your Room Now</span>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-black/80 group-hover:translate-x-1.5 transition-transform duration-300" />
                 </button>
                 <Link
                   href="/contact"
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-semibold px-7 py-3.5 rounded-full transition shadow-lg transform hover:scale-105"
+                  className="group inline-flex items-center gap-2.5 bg-[#141e33] hover:bg-[#1a2948] text-white font-semibold px-7 py-3.5 rounded-full border border-gray-700/80 hover:border-gold-400/60 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out text-sm sm:text-base"
                 >
-                  <Phone className="w-5 h-5 text-gold-400" />
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-gold-400 group-hover:rotate-12 transition-transform duration-300" />
                   <span>Contact Front Desk</span>
                 </Link>
               </div>

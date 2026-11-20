@@ -1,8 +1,27 @@
 import { NextResponse } from "next/server";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  getSupabaseBookings,
+  createSupabaseBooking,
+  checkSupabaseRoomAvailability,
+} from "@/lib/supabase-db";
 import { prisma } from "@/lib/prisma";
 import { fallbackStore, FallbackRoomType } from "@/lib/mock-data";
 
 export async function GET() {
+  // 1. Primary Cloud Backend: Supabase
+  if (isSupabaseConfigured()) {
+    try {
+      const bookings = await getSupabaseBookings();
+      if (bookings && bookings.length > 0) {
+        return NextResponse.json(bookings);
+      }
+    } catch (err) {
+      console.warn("Supabase booking fetch failed, falling back to secondary:", err);
+    }
+  }
+
+  // 2. Secondary Local Backend: Prisma
   try {
     const bookings = await prisma.booking.findMany({
       include: {
@@ -20,6 +39,7 @@ export async function GET() {
     console.warn("Prisma unavailable, serving fallback bookings:", error);
   }
 
+  // 3. In-memory fallback
   return NextResponse.json(fallbackStore.getBookings());
 }
 
@@ -58,7 +78,7 @@ export async function POST(req: Request) {
 
     if (!roomTypeId || !guestName || !guestPhone || !checkIn || !checkOut) {
       return NextResponse.json(
-        { error: "Required fields missing" },
+        { error: "Required fields missing (room, name, phone, check-in, check-out)" },
         { status: 400 }
       );
     }
@@ -68,7 +88,62 @@ export async function POST(req: Request) {
     const randomDigits = Math.floor(10000 + Math.random() * 90000);
     const bookingCode = `ALSAFA-${randomDigits}`;
 
-    // Attempt creation with Prisma
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const availability = await checkSupabaseRoomAvailability(
+          roomTypeId,
+          parsedCheckIn,
+          parsedCheckOut
+        );
+
+        if (!availability.available && availability.room) {
+          return NextResponse.json(
+            {
+              error: `Sorry, ${availability.room.name} is fully booked for these dates (${availability.occupied}/${availability.totalUnits} units occupied). Please select different dates or another suite.`,
+            },
+            { status: 409 }
+          );
+        }
+
+        const newSupabaseBooking = await createSupabaseBooking({
+          bookingCode,
+          roomTypeId,
+          guestName,
+          guestEmail: guestEmail || "guest@hotelalsafabd.com",
+          guestPhone,
+          guestNidPassport: guestNidPassport || null,
+          permanentAddress: permanentAddress || null,
+          occupation: occupation || null,
+          nationality: nationality || "Bangladeshi",
+          fatherOrHusbandName: fatherOrHusbandName || null,
+          purposeOfTravel: purposeOfTravel || null,
+          allottedRoom: allottedRoom || null,
+          checkIn: parsedCheckIn.toISOString(),
+          checkOut: parsedCheckOut.toISOString(),
+          nights: Number(nights) || 1,
+          adults: Number(adults) || 2,
+          children: Number(children) || 0,
+          totalAmount: Number(totalAmount) || 0,
+          paidAmount: Number(paidAmount) || 0,
+          paymentStatus: paymentStatus || (paymentMethod === "PAY_AT_HOTEL" ? "PENDING" : "PAID"),
+          paymentMethod: paymentMethod || "PAY_AT_HOTEL",
+          status: "CONFIRMED",
+          specialRequests: specialRequests || null,
+          airportTransfer: Boolean(airportTransfer),
+          extraBed: Boolean(extraBed),
+          breakfast: Boolean(breakfast),
+          promoCode: promoCode || null,
+          discountAmount: Number(discountAmount) || 0,
+        });
+
+        return NextResponse.json(newSupabaseBooking, { status: 201 });
+      } catch (err) {
+        console.warn("Supabase booking creation failed, attempting local fallback:", err);
+      }
+    }
+
+    // 2. Secondary Local Backend: Prisma
     try {
       const roomType = await prisma.roomType.findUnique({
         where: { id: roomTypeId },
@@ -138,7 +213,7 @@ export async function POST(req: Request) {
       console.warn("Prisma booking insert failed, using fallback in-memory store:", dbErr);
     }
 
-    // Fallback store handling for serverless deployment
+    // 3. Fallback store handling for offline dev / serverless without DB
     const fallbackRoom: FallbackRoomType | undefined = fallbackStore.getRoomByIdOrSlug(roomTypeId);
     const room = fallbackRoom || fallbackStore.getRooms()[0];
 

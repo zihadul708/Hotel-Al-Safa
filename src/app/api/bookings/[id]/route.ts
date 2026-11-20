@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { updateSupabaseBooking, deleteSupabaseBooking } from "@/lib/supabase-db";
 import { prisma } from "@/lib/prisma";
 import { fallbackStore } from "@/lib/mock-data";
 
@@ -10,6 +12,19 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const updated = await updateSupabaseBooking(id, body);
+        if (updated) {
+          return NextResponse.json(updated);
+        }
+      } catch (err) {
+        console.warn("Supabase booking update failed, attempting local fallback:", err);
+      }
+    }
+
+    // 2. Secondary Local Backend: Prisma
     try {
       const updated = await prisma.booking.update({
         where: { id },
@@ -64,6 +79,19 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const deleted = await deleteSupabaseBooking(id);
+        if (deleted) {
+          return NextResponse.json({ success: true });
+        }
+      } catch (err) {
+        console.warn("Supabase booking deletion failed, attempting local fallback:", err);
+      }
+    }
+
+    // 2. Secondary Local Backend: Prisma
     try {
       await prisma.booking.delete({
         where: { id },

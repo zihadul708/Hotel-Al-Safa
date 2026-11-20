@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { updateSupabaseInquiryStatus, deleteSupabaseInquiry } from "@/lib/supabase-db";
 import { prisma } from "@/lib/prisma";
 import { fallbackStore } from "@/lib/mock-data";
 
@@ -10,6 +12,23 @@ export async function PATCH(
     const { id } = await params;
     const { status } = await req.json();
 
+    if (!status) {
+      return NextResponse.json({ error: "Status is required" }, { status: 400 });
+    }
+
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const updated = await updateSupabaseInquiryStatus(id, status);
+        if (updated) {
+          return NextResponse.json(updated);
+        }
+      } catch (err) {
+        console.warn("Supabase inquiry update failed, attempting local fallback:", err);
+      }
+    }
+
+    // 2. Secondary Local Backend: Prisma
     try {
       const updated = await prisma.inquiry.update({
         where: { id },
@@ -41,6 +60,19 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const deleted = await deleteSupabaseInquiry(id);
+        if (deleted) {
+          return NextResponse.json({ success: true });
+        }
+      } catch (err) {
+        console.warn("Supabase inquiry delete failed, attempting local fallback:", err);
+      }
+    }
+
+    // 2. Secondary Local Backend: Prisma
     try {
       await prisma.inquiry.delete({ where: { id } });
       return NextResponse.json({ success: true });

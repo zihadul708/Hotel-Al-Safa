@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabasePromoCode } from "@/lib/supabase-db";
 import { prisma } from "@/lib/prisma";
 import { fallbackStore } from "@/lib/mock-data";
 
@@ -23,14 +25,30 @@ export async function POST(req: Request) {
       isActive: boolean;
     } | null | undefined = null;
 
-    try {
-      promo = await prisma.promoCode.findUnique({
-        where: { code: cleanCode },
-      });
-    } catch (dbErr) {
-      console.warn("Prisma promo lookup failed, searching fallback store:", dbErr);
+    // 1. Primary Cloud Backend: Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const supabasePromo = await getSupabasePromoCode(cleanCode);
+        if (supabasePromo) {
+          promo = supabasePromo;
+        }
+      } catch (err) {
+        console.warn("Supabase promo lookup failed, checking local fallbacks:", err);
+      }
     }
 
+    // 2. Secondary Local Backend: Prisma
+    if (!promo) {
+      try {
+        promo = await prisma.promoCode.findUnique({
+          where: { code: cleanCode },
+        });
+      } catch (dbErr) {
+        console.warn("Prisma promo lookup failed, searching fallback store:", dbErr);
+      }
+    }
+
+    // 3. Fallback store
     if (!promo) {
       promo = fallbackStore.findPromo(cleanCode);
     }

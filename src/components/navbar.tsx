@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, Clock, Sparkles, Menu, X, Calendar } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Sparkles, Menu, X, Calendar, ArrowRight } from "lucide-react";
 import { HOTEL_CONFIG } from "@/lib/hotel-config";
 
 export function TopBar() {
@@ -64,9 +64,9 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
 
   const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Our Story", href: "/#story" },
     { label: "Rooms & Suites", href: "/rooms" },
     { label: "Location", href: "/#location" },
+    { label: "Terms & Conditions", href: "/terms" },
     { label: "Contact", href: "/contact" },
   ];
 
@@ -91,22 +91,22 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
             />
           </div>
           <div>
-            <span className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-white tracking-wide block leading-tight group-hover:text-gold-300 transition-colors">
-              HOTEL AL SAFA
+            <span className="text-base sm:text-lg md:text-xl font-serif font-bold text-white tracking-wide block leading-tight group-hover:text-gold-300 transition-colors">
+              Hotel Al Safa International
             </span>
-            <span className="text-[9px] sm:text-[10px] md:text-[11px] text-gold-400 tracking-[0.16em] sm:tracking-[0.22em] uppercase font-semibold block mt-0.5">
-              Luxury Transit & Suites • Dhaka
+            <span className="text-[9px] sm:text-[10px] md:text-[11px] text-gold-400 tracking-[0.14em] sm:tracking-[0.18em] uppercase font-semibold block mt-0.5">
+              Luxury Airport Transit • Dhaka
             </span>
           </div>
         </Link>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden lg:flex items-center gap-7">
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              className="text-sm font-medium text-gray-200 hover:text-gold-400 transition-colors uppercase tracking-wider relative group py-1"
+              className="text-xs xl:text-sm font-medium text-gray-200 hover:text-gold-400 transition-colors uppercase tracking-wider relative group py-1 whitespace-nowrap"
             >
               {link.label}
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold-400 transition-all duration-300 group-hover:w-full" />
@@ -118,10 +118,11 @@ export function Navbar({ onOpenBooking }: { onOpenBooking?: () => void }) {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onOpenBooking}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 hover:from-gold-400 hover:to-gold-500 text-black font-bold px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm shadow-md shadow-gold-500/20 active:scale-95 transition-all"
+            className="group flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black font-bold px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm shadow-md shadow-gold-500/20 hover:shadow-lg hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 ease-out"
           >
-            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform duration-300" />
             <span>Book Online</span>
+            <ArrowRight className="w-3.5 h-3.5 hidden sm:inline-block group-hover:translate-x-0.5 transition-transform duration-300" />
           </button>
 
           {/* Mobile Menu Button */}

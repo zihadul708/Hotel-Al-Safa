@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { X, Check, Bed, Users, Maximize, Wind, Calendar, ShieldCheck, Sparkles } from "lucide-react";
+import { X, Check, Bed, Users, Maximize, Wind, Calendar, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 
 interface RoomDetailModalProps {
   room: {
@@ -149,9 +149,10 @@ export function RoomDetailModal({ room, isOpen, onClose, onBookNow }: RoomDetail
                   onClose();
                   onBookNow(room.slug);
                 }}
-                className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-gold-500/20 transition transform hover:-translate-y-0.5"
+                className="group bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-gold-500/20 hover:shadow-xl hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out flex items-center gap-2"
               >
-                Book This Room
+                <span>Book This Room</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </div>
           </div>

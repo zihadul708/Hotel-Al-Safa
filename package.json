@@ -7,11 +7,14 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "prisma db push && tsx prisma/seed.ts"
+    "seed": "prisma db push && tsx prisma/seed.ts",
+    "seed:supabase": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "@supabase/supabase-js": "^2.119.1",
     "canvas-confetti": "^1.9.4",
+    "cloudinary": "^2.11.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
     "lucide-react": "^1.16.0",

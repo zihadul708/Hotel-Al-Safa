@@ -11,6 +11,10 @@ import {
   MessageCircle,
   ChevronDown,
   Navigation,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -22,6 +26,52 @@ export default function ContactPage() {
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Guest Inquiry Form State
+  const [inquiryName, setInquiryName] = useState("");
+  const [inquiryEmail, setInquiryEmail] = useState("");
+  const [inquiryPhone, setInquiryPhone] = useState("");
+  const [inquirySubject, setInquirySubject] = useState("Airport Shuttle & Transit Stay");
+  const [inquiryMessage, setInquiryMessage] = useState("");
+  const [inquirySubmitting, setInquirySubmitting] = useState(false);
+  const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [inquiryError, setInquiryError] = useState("");
+
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInquirySubmitting(true);
+    setInquiryError("");
+    setInquirySuccess(false);
+
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: inquiryName,
+          email: inquiryEmail,
+          phone: inquiryPhone,
+          subject: inquirySubject,
+          message: inquiryMessage,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to submit inquiry. Please try again.");
+      }
+
+      setInquirySuccess(true);
+      setInquiryName("");
+      setInquiryEmail("");
+      setInquiryPhone("");
+      setInquiryMessage("");
+    } catch (err: any) {
+      setInquiryError(err.message || "Failed to submit message.");
+    } finally {
+      setInquirySubmitting(false);
+    }
+  };
 
   const faqs = [
     {
@@ -242,8 +292,8 @@ export default function ContactPage() {
               <div className="bg-white p-3 rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="relative h-72 sm:h-80 w-full rounded-2xl overflow-hidden">
                   <iframe
-                    title="Hotel Al Safa Location Map"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3649.529759367341!2d90.40794411135246!3d23.853099984687642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c69cc8eb1107%3A0xb3a82dfdfae002d2!2sAshkona%20Hajj%20Camp!5e0!3m2!1sen!2sbd!4v1714500000000!5m2!1sen!2sbd"
+                    title="Hotel Al Safa International Location Map"
+                    src="https://maps.google.com/maps?q=23.8516087,90.4145012+(Hotel+Al+Safa+International)&t=&z=17&ie=UTF8&iwloc=B&output=embed"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -251,6 +301,15 @@ export default function ContactPage() {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
+                  <a
+                    href="https://maps.app.goo.gl/4MH89QCucKXE5hHv5"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute top-3 left-3 bg-[#070d18]/90 hover:bg-[#070d18] transition-all backdrop-blur-md text-white px-3.5 py-1.5 rounded-xl border border-gold-400/40 text-xs shadow-lg flex items-center gap-2 cursor-pointer hover:border-gold-400"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="font-semibold text-gold-300">Open in Google Maps</span>
+                  </a>
                 </div>
               </div>
 
@@ -285,6 +344,147 @@ export default function ContactPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Interactive Guest Inquiry & Flight Message Section */}
+        <section className="py-12 px-4 max-w-4xl mx-auto">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-xl p-6 sm:p-10 space-y-6">
+            <div className="text-center space-y-2 max-w-xl mx-auto">
+              <span className="text-xs uppercase tracking-widest text-gold-600 font-bold">
+                Online Front Desk Messaging
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">
+                Send an Inquiry or Flight Detail
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500">
+                Provide your flight number, late arrival schedule, or room requirements. Our front desk saves your message directly to our system and will respond promptly.
+              </p>
+            </div>
+
+            {inquirySuccess ? (
+              <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-emerald-900 text-lg">Inquiry Received Successfully!</h3>
+                <p className="text-xs sm:text-sm text-emerald-700 max-w-md mx-auto">
+                  Thank you! Your message has been saved to our reservations desk. Our 24/7 staff will connect with you via WhatsApp or phone shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setInquirySuccess(false)}
+                  className="mt-2 text-xs font-bold text-emerald-800 underline hover:text-emerald-900"
+                >
+                  Send another inquiry
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleInquirySubmit} className="space-y-4">
+                {inquiryError && (
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{inquiryError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Tanvir Ahmed"
+                      value={inquiryName}
+                      onChange={(e) => setInquiryName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                      Phone / WhatsApp Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+880 1711-XXXXXX"
+                      value={inquiryPhone}
+                      onChange={(e) => setInquiryPhone(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                      Email Address (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="guest@example.com"
+                      value={inquiryEmail}
+                      onChange={(e) => setInquiryEmail(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                      Inquiry Subject
+                    </label>
+                    <select
+                      value={inquirySubject}
+                      onChange={(e) => setInquirySubject(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/50 bg-white"
+                    >
+                      <option value="Airport Shuttle & Transit Stay">Airport Shuttle & Transit Stay</option>
+                      <option value="Late Night / Early Morning Check-In">Late Night / Early Morning Check-In</option>
+                      <option value="Family / Hajj Pilgrim Group Booking">Family / Hajj Pilgrim Group Booking</option>
+                      <option value="Room Rates & Special Discount">Room Rates & Special Discount</option>
+                      <option value="Other Assistance">Other Assistance</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                    Your Message / Flight Details *
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    placeholder="Enter flight number, arrival time, room requirements or any questions..."
+                    value={inquiryMessage}
+                    onChange={(e) => setInquiryMessage(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/50 resize-none"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    disabled={inquirySubmitting}
+                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 hover:to-gold-400 text-black font-bold text-sm shadow-md transition disabled:opacity-50"
+                  >
+                    {inquirySubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Message to Front Desk</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </section>
 

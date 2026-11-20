@@ -7,30 +7,22 @@ import {
   Calendar,
   Users,
   Bed,
-  CheckCircle2,
-  Clock,
   Search,
-  Filter,
-  DollarSign,
   TrendingUp,
-  ArrowUpRight,
   ExternalLink,
   Plus,
   RefreshCw,
   Phone,
-  Mail,
   Edit2,
   Trash2,
   AlertCircle,
   Eye,
   Check,
   X,
-  Download,
   Lock,
-  Unlock,
   MessageSquare,
-  Send,
-  ShieldAlert,
+  ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 
 interface AdminBooking {
@@ -80,6 +72,12 @@ interface RoomItem {
   isAc: boolean;
   basePrice: number;
   capacity: number;
+  bedType?: string;
+  sizeSqFt?: number;
+  description?: string;
+  images?: string[];
+  amenities?: string[];
+  featured?: boolean;
   availableUnits: number;
 }
 
@@ -116,25 +114,16 @@ export default function AdminDashboardPage() {
   const [newPrice, setNewPrice] = useState<number>(0);
   const [updatingPrice, setUpdatingPrice] = useState(false);
 
-  // Walk-in Guest Modal
-  const [walkInModalOpen, setWalkInModalOpen] = useState(false);
-  const [walkInName, setWalkInName] = useState("");
-  const [walkInPhone, setWalkInPhone] = useState("");
-  const [walkInEmail, setWalkInEmail] = useState("");
-  const [walkInRoomId, setWalkInRoomId] = useState("");
-  const [walkInCheckIn, setWalkInCheckIn] = useState("");
-  const [walkInCheckOut, setWalkInCheckOut] = useState("");
-  const [walkInNid, setWalkInNid] = useState("");
-  const [walkInAddress, setWalkInAddress] = useState("");
-  const [walkInOccupation, setWalkInOccupation] = useState("Private Service");
-  const [walkInNationality, setWalkInNationality] = useState("Bangladeshi");
-  const [walkInFatherOrHusband, setWalkInFatherOrHusband] = useState("");
-  const [walkInPurpose, setWalkInPurpose] = useState("Airport Transit");
-  const [walkInAllottedRoom, setWalkInAllottedRoom] = useState("");
-  const [walkInPaymentMethod, setWalkInPaymentMethod] = useState("PAY_AT_HOTEL");
-  const [walkInPaymentStatus, setWalkInPaymentStatus] = useState("PAID");
-  const [walkInSubmitting, setWalkInSubmitting] = useState(false);
-  const [walkInError, setWalkInError] = useState("");
+  // Room Editor / Creator Modal State
+  const [roomModalOpen, setRoomModalOpen] = useState(false);
+  const [roomModalMode, setRoomModalMode] = useState<"CREATE" | "EDIT">("CREATE");
+  const [editingRoom, setEditingRoom] = useState<Partial<RoomItem>>({});
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [amenitiesInput, setAmenitiesInput] = useState("");
+  const [roomSubmitting, setRoomSubmitting] = useState(false);
+  const [roomModalError, setRoomModalError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   // Check auth on mount
   useEffect(() => {
@@ -178,10 +167,6 @@ export default function AdminDashboardPage() {
       setBookings(Array.isArray(dataBookings) ? dataBookings : []);
       setRooms(Array.isArray(dataRooms) ? dataRooms : []);
       setInquiries(Array.isArray(dataInquiries) ? dataInquiries : []);
-
-      if (Array.isArray(dataRooms) && dataRooms.length > 0 && !walkInRoomId) {
-        setWalkInRoomId(dataRooms[0].id);
-      }
     } catch (err) {
       console.error("Failed to load admin data:", err);
     } finally {
@@ -192,11 +177,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchDashboardData();
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setWalkInCheckIn(today.toISOString().split("T")[0]);
-      setWalkInCheckOut(tomorrow.toISOString().split("T")[0]);
     }
   }, [isAuthenticated]);
 
@@ -299,156 +279,168 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Walk-in Booking Submission
-  const handleCreateWalkIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setWalkInError("");
+  // Room Creation & Editing Handlers
+  const openCreateRoomModal = () => {
+    setRoomModalMode("CREATE");
+    setEditingRoom({
+      name: "",
+      category: "Couple",
+      slug: "",
+      isAc: true,
+      basePrice: 2500,
+      capacity: 2,
+      bedType: "1 King Bed",
+      sizeSqFt: 280,
+      description: "Comfortable air-conditioned suite with high-speed Wi-Fi, 24/7 hot water geyser, and airport shuttle assistance.",
+      images: [
+        "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+      ],
+      amenities: ["Split AC", "King Size Bed", "Ensuite Bathroom", "24/7 Hot Water", "High-Speed Wi-Fi"],
+      featured: false,
+      availableUnits: 5,
+    });
+    setAmenitiesInput("Split AC, King Size Bed, Ensuite Bathroom, 24/7 Hot Water, High-Speed Wi-Fi");
+    setNewImageUrl("");
+    setRoomModalError("");
+    setUploadError("");
+    setRoomModalOpen(true);
+  };
 
-    if (!walkInName.trim() || !walkInPhone.trim() || !walkInRoomId) {
-      setWalkInError("Name, phone number, and room type are required.");
-      return;
-    }
+  const openEditRoomModal = (room: RoomItem) => {
+    setRoomModalMode("EDIT");
+    setEditingRoom({
+      ...room,
+      images: Array.isArray(room.images) ? [...room.images] : [],
+      amenities: Array.isArray(room.amenities) ? [...room.amenities] : [],
+    });
+    setAmenitiesInput(Array.isArray(room.amenities) ? room.amenities.join(", ") : "");
+    setNewImageUrl("");
+    setRoomModalError("");
+    setUploadError("");
+    setRoomModalOpen(true);
+  };
 
-    const diffDays = Math.max(
-      1,
-      Math.ceil(
-        (new Date(walkInCheckOut).getTime() - new Date(walkInCheckIn).getTime()) /
-          (1000 * 60 * 60 * 24)
-      )
-    );
+  const handleAddImage = () => {
+    if (!newImageUrl.trim()) return;
+    const currentImages = Array.isArray(editingRoom.images) ? [...editingRoom.images] : [];
+    currentImages.push(newImageUrl.trim());
+    setEditingRoom((prev) => ({ ...prev, images: currentImages }));
+    setNewImageUrl("");
+  };
 
-    const targetRoom = rooms.find((r) => r.id === walkInRoomId);
-    const roomCost = targetRoom ? targetRoom.basePrice * diffDays : 3500;
-    const tax = Math.round(roomCost * 0.05);
-    const totalAmount = roomCost + tax;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setWalkInSubmitting(true);
+    setUploadingImage(true);
+    setUploadError("");
+
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomTypeId: walkInRoomId,
-          guestName: walkInName.trim(),
-          guestPhone: walkInPhone.trim(),
-          guestEmail: walkInEmail.trim() || "walkin@hotelalsafabd.com",
-          guestNidPassport: walkInNid.trim() || null,
-          permanentAddress: walkInAddress.trim() || null,
-          occupation: walkInOccupation.trim() || null,
-          nationality: walkInNationality.trim() || "Bangladeshi",
-          fatherOrHusbandName: walkInFatherOrHusband.trim() || null,
-          purposeOfTravel: walkInPurpose.trim() || null,
-          allottedRoom: walkInAllottedRoom.trim() || null,
-          checkIn: new Date(walkInCheckIn).toISOString(),
-          checkOut: new Date(walkInCheckOut).toISOString(),
-          nights: diffDays,
-          adults: targetRoom?.capacity || 2,
-          children: 0,
-          totalAmount,
-          paidAmount: walkInPaymentStatus === "PAID" ? totalAmount : 0,
-          paymentStatus: walkInPaymentStatus,
-          paymentMethod: walkInPaymentMethod,
-          status: "CHECKED_IN",
-          specialRequests: "Front-desk registered walk-in guest.",
-        }),
-      });
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Failed to create reservation.");
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || `Upload failed for ${file.name}`);
+        }
+        if (data.url) {
+          newUrls.push(data.url);
+        }
       }
 
-      setWalkInModalOpen(false);
-      setWalkInName("");
-      setWalkInPhone("");
-      setWalkInEmail("");
-      setWalkInNid("");
-      setWalkInAddress("");
-      setWalkInOccupation("Private Service");
-      setWalkInNationality("Bangladeshi");
-      setWalkInFatherOrHusband("");
-      setWalkInPurpose("Airport Transit");
-      setWalkInAllottedRoom("");
-      fetchDashboardData();
+      setEditingRoom((prev) => ({
+        ...prev,
+        images: [...(Array.isArray(prev.images) ? prev.images : []), ...newUrls],
+      }));
     } catch (err: any) {
-      setWalkInError(err.message || "Failed to create walk-in reservation.");
+      setUploadError(err.message || "Failed to upload image to Cloudinary.");
     } finally {
-      setWalkInSubmitting(false);
+      setUploadingImage(false);
+      e.target.value = "";
     }
   };
 
-  // CSV Export Function (DMP Police Register Format Compliant)
-  const handleExportCSV = () => {
-    if (bookings.length === 0) {
-      alert("No reservation records available to export.");
+  const handleRemoveImage = (indexToRemove: number) => {
+    const currentImages = Array.isArray(editingRoom.images) ? [...editingRoom.images] : [];
+    currentImages.splice(indexToRemove, 1);
+    setEditingRoom((prev) => ({ ...prev, images: currentImages }));
+  };
+
+  const handleSaveRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRoom.name?.trim()) {
+      setRoomModalError("Room name is required.");
       return;
     }
 
-    const headers = [
-      "Booking Reference",
-      "Guest Name",
-      "Phone",
-      "NID/Passport",
-      "Permanent Address",
-      "Occupation",
-      "Nationality",
-      "Father/Husband",
-      "Purpose of Travel",
-      "Allotted Room",
-      "Email",
-      "Room Category",
-      "Check-In",
-      "Check-Out",
-      "Nights",
-      "Total Amount (BDT)",
-      "Paid Amount (BDT)",
-      "Payment Status",
-      "Payment Gateway",
-      "Reservation Status",
-      "Shuttle",
-      "Special Requests",
-      "Created At",
-    ];
+    setRoomSubmitting(true);
+    setRoomModalError("");
 
-    const rows = bookings.map((b) => [
-      b.bookingCode,
-      `"${b.guestName.replace(/"/g, '""')}"`,
-      `"${b.guestPhone}"`,
-      `"${b.guestNidPassport || ""}"`,
-      `"${(b.permanentAddress || "").replace(/"/g, '""')}"`,
-      `"${(b.occupation || "").replace(/"/g, '""')}"`,
-      `"${b.nationality || "Bangladeshi"}"`,
-      `"${(b.fatherOrHusbandName || "").replace(/"/g, '""')}"`,
-      `"${(b.purposeOfTravel || "").replace(/"/g, '""')}"`,
-      `"${b.allottedRoom || ""}"`,
-      `"${b.guestEmail}"`,
-      `"${b.roomType?.name || "Suite"}"`,
-      new Date(b.checkIn).toLocaleDateString(),
-      new Date(b.checkOut).toLocaleDateString(),
-      b.nights,
-      b.totalAmount,
-      b.paidAmount,
-      b.paymentStatus,
-      b.paymentMethod,
-      b.status,
-      b.airportTransfer ? "Yes" : "No",
-      `"${(b.specialRequests || "").replace(/"/g, '""')}"`,
-      new Date(b.createdAt).toLocaleDateString(),
-    ]);
+    const parsedAmenities = amenitiesInput
+      .split(",")
+      .map((a) => a.trim())
+      .filter(Boolean);
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `hotel-al-safa-reservations-${new Date().toISOString().split("T")[0]}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const payload = {
+      ...editingRoom,
+      name: editingRoom.name.trim(),
+      amenities: parsedAmenities,
+      basePrice: Number(editingRoom.basePrice) || 2500,
+      capacity: Number(editingRoom.capacity) || 2,
+      sizeSqFt: Number(editingRoom.sizeSqFt) || 280,
+      availableUnits: Number(editingRoom.availableUnits) || 5,
+    };
+
+    try {
+      const isCreate = roomModalMode === "CREATE";
+      const res = await fetch("/api/rooms", {
+        method: isCreate ? "POST" : "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to save room details.");
+      }
+
+      setRoomModalOpen(false);
+      await fetchDashboardData();
+    } catch (err: any) {
+      setRoomModalError(err.message || "Failed to save room.");
+    } finally {
+      setRoomSubmitting(false);
+    }
+  };
+
+  const handleDeleteRoom = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/rooms?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete room.");
+      }
+
+      setRoomModalOpen(false);
+      await fetchDashboardData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete room.");
+    }
   };
 
   // KPIs
@@ -564,19 +556,11 @@ export default function AdminDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => setWalkInModalOpen(true)}
+            onClick={openCreateRoomModal}
             className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-lg shadow transition"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Walk-in Booking</span>
-          </button>
-
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gray-300 text-xs px-3.5 py-2 rounded-lg border border-gray-700 transition"
-          >
-            <Download className="w-3.5 h-3.5 text-gold-400" />
-            <span>Export CSV</span>
+            <span>+ Add New Room</span>
           </button>
 
           <button
@@ -743,7 +727,7 @@ export default function AdminDashboardPage() {
                       <th className="px-5 py-3.5">Amount / Method</th>
                       <th className="px-5 py-3.5">Payment</th>
                       <th className="px-5 py-3.5">Status Action</th>
-                      <th className="px-5 py-3.5 text-right">Voucher</th>
+                      <th className="px-5 py-3.5 text-right">Details</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/80">
@@ -826,22 +810,15 @@ export default function AdminDashboardPage() {
                             </select>
                           </td>
 
-                          <td className="px-5 py-4 text-right whitespace-nowrap space-x-2">
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
                             <button
                               onClick={() => setSelectedBooking(b)}
-                              className="p-1.5 rounded-lg bg-[#141f36] hover:bg-[#1f2f50] text-gray-300 hover:text-white transition"
-                              title="Quick Inspect"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141f36] hover:bg-gold-500/20 text-gray-300 hover:text-gold-300 border border-gray-700/80 transition text-xs font-semibold"
+                              title="View Guest Details"
                             >
-                              <Eye className="w-3.5 h-3.5" />
+                              <Eye className="w-3.5 h-3.5 text-gold-400" />
+                              <span>View</span>
                             </button>
-                            <Link
-                              href={`/booking/${b.bookingCode}`}
-                              target="_blank"
-                              className="inline-block p-1.5 rounded-lg bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 border border-gold-500/30 transition"
-                              title="Open Printable Voucher"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Link>
                           </td>
                         </tr>
                       ))
@@ -853,82 +830,209 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 2: ROOM RATES & INVENTORY */}
+        {/* TAB 2: ROOM MANAGEMENT & INVENTORY */}
         {activeTab === "ROOMS" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rooms.map((room) => {
-              const isEditing = editingRoomId === room.id;
-              return (
-                <div
-                  key={room.id}
-                  className="bg-[#0b1220] border border-gray-800 rounded-2xl p-5 space-y-4 shadow-sm"
-                >
-                  <div className="flex justify-between items-start">
+          <div className="space-y-6">
+            <div className="bg-[#0b1220] p-4 sm:p-5 rounded-2xl border border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+              <div>
+                <h3 className="font-bold text-base text-white flex items-center gap-2">
+                  <Bed className="w-5 h-5 text-gold-400" />
+                  <span>Room Categories & Live Inventory ({rooms.length})</span>
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Manage room names, photography galleries, nightly BDT pricing, amenities, and available units.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={openCreateRoomModal}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs shadow-md transition self-start sm:self-auto"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Add New Room Category</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rooms.map((room) => {
+                const isEditing = editingRoomId === room.id;
+                const firstImage = Array.isArray(room.images) && room.images.length > 0 ? room.images[0] : null;
+
+                return (
+                  <div
+                    key={room.id}
+                    className="bg-[#0b1220] border border-gray-800 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between group hover:border-gold-500/40 transition"
+                  >
                     <div>
-                      <span className="text-[10px] uppercase tracking-wider text-gold-400 font-bold block">
-                        {room.category} Suite
-                      </span>
-                      <h4 className="font-serif font-bold text-white text-base mt-0.5">
-                        {room.name}
-                      </h4>
-                      <span className="text-xs text-gray-400">
-                        {room.isAc ? "Split AC" : "Non-AC"} • Capacity: {room.capacity} Guests
-                      </span>
+                      {/* Image Thumbnail Header */}
+                      <div className="relative h-44 w-full bg-[#121c31] overflow-hidden">
+                        {firstImage ? (
+                          <img
+                            src={firstImage}
+                            alt={room.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                            <ImageIcon className="w-8 h-8 mb-1" />
+                            <span className="text-xs">No Photo Added</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-transparent to-black/40" />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-gold-300 border border-gold-400/30">
+                            {room.category} Suite
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {room.featured && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-500 text-black">
+                                Featured
+                              </span>
+                            )}
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                room.isAc
+                                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/40"
+                                  : "bg-gray-700/60 text-gray-300"
+                              }`}
+                            >
+                              {room.isAc ? "Split AC" : "Non-AC"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Photos Count Badge */}
+                        {Array.isArray(room.images) && room.images.length > 0 && (
+                          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] text-gray-300 flex items-center gap-1">
+                            <ImageIcon className="w-3 h-3 text-gold-400" />
+                            <span>{room.images.length} Photos</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content Details */}
+                      <div className="p-5 space-y-3">
+                        <div>
+                          <h4 className="font-serif font-bold text-white text-base leading-snug">
+                            {room.name}
+                          </h4>
+                          {room.description && (
+                            <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-relaxed">
+                              {room.description}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Specs Pills */}
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-300 pt-1">
+                          <span className="px-2 py-0.5 rounded-md bg-[#131e33] border border-gray-700">
+                            👥 {room.capacity} Guests
+                          </span>
+                          {room.bedType && (
+                            <span className="px-2 py-0.5 rounded-md bg-[#131e33] border border-gray-700">
+                              🛏️ {room.bedType}
+                            </span>
+                          )}
+                          {room.sizeSqFt && (
+                            <span className="px-2 py-0.5 rounded-md bg-[#131e33] border border-gray-700">
+                              📐 {room.sizeSqFt} sq.ft
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Nightly Base Rate */}
+                        <div className="bg-[#101a2d] p-3.5 rounded-xl border border-gray-800 space-y-2 mt-2">
+                          <div className="flex justify-between items-center text-[11px] text-gray-400 uppercase tracking-wider">
+                            <span>Base Nightly Rate:</span>
+                            <span className="text-white font-bold">{room.availableUnits || 5} units left</span>
+                          </div>
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={newPrice}
+                                onChange={(e) => setNewPrice(Number(e.target.value))}
+                                className="w-full bg-[#16223b] border border-gold-500 rounded-lg px-3 py-1.5 text-base font-bold text-gold-400 focus:outline-none"
+                              />
+                              <button
+                                disabled={updatingPrice}
+                                onClick={() => handleSavePrice(room.id)}
+                                className="bg-gold-500 text-black px-3 py-1.5 rounded-lg font-bold text-xs"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingRoomId(null)}
+                                className="text-gray-400 hover:text-white text-xs px-2"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <span className="text-xl font-bold text-gold-400">
+                                ৳{room.basePrice.toLocaleString()} <span className="text-xs text-gray-400 font-normal">/ night</span>
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setEditingRoomId(room.id);
+                                  setNewPrice(room.basePrice);
+                                }}
+                                className="flex items-center gap-1 text-xs text-gray-400 hover:text-gold-400 transition"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                                <span>Quick Price</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="px-5 pb-5 pt-1 flex items-center justify-between border-t border-gray-800/80 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => openEditRoomModal(room)}
+                        className="flex-1 mr-2 py-2 px-3 rounded-xl bg-gold-500/15 hover:bg-gold-500/25 text-gold-300 border border-gold-500/30 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit Room Details</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRoom(room.id, room.name)}
+                        className="p-2 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-950/30 border border-gray-800 transition"
+                        title="Delete Room"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
+                );
+              })}
 
-                  <div className="bg-[#101a2d] p-4 rounded-xl border border-gray-800 space-y-2">
-                    <span className="text-[11px] text-gray-400 block uppercase tracking-wider">
-                      Live Base Nightly Rate (BDT)
-                    </span>
-                    {isEditing ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={newPrice}
-                          onChange={(e) => setNewPrice(Number(e.target.value))}
-                          className="w-full bg-[#16223b] border border-gold-500 rounded-lg px-3 py-1.5 text-base font-bold text-gold-400 focus:outline-none"
-                        />
-                        <button
-                          disabled={updatingPrice}
-                          onClick={() => handleSavePrice(room.id)}
-                          className="bg-gold-500 text-black px-3 py-1.5 rounded-lg font-bold text-xs"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setEditingRoomId(null)}
-                          className="text-gray-400 hover:text-white text-xs px-2"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <span className="text-2xl font-bold text-gold-400">
-                          ৳{room.basePrice.toLocaleString()}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setEditingRoomId(room.id);
-                            setNewPrice(room.basePrice);
-                          }}
-                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gold-400 transition"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          <span>Update</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-xs text-gray-400 flex justify-between items-center pt-1">
-                    <span>Available Inventory:</span>
-                    <span className="font-bold text-white">{room.availableUnits || 5} units</span>
-                  </div>
+              {/* Add Room Card Trigger */}
+              <button
+                type="button"
+                onClick={openCreateRoomModal}
+                className="bg-[#0b1220]/60 border-2 border-dashed border-gray-800 hover:border-gold-500/60 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 transition group min-h-[300px]"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-gold-500/10 group-hover:bg-gold-500/20 text-gold-400 flex items-center justify-center transition">
+                  <Plus className="w-6 h-6" />
                 </div>
-              );
-            })}
+                <div>
+                  <h4 className="font-serif font-bold text-white text-base group-hover:text-gold-300 transition">
+                    + Add New Room Category
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1 max-w-[200px]">
+                    Create a new suite with pricing, photos, and specs.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
         )}
 
@@ -1140,295 +1244,393 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              <div className="flex justify-between items-center pt-2">
-                <Link
-                  href={`/booking/${selectedBooking.bookingCode}`}
-                  target="_blank"
-                  className="bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 border border-gold-500/30 text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5"
+              <div className="flex justify-end items-center pt-3 border-t border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBooking(null)}
+                  className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-6 py-2.5 rounded-xl transition shadow"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Web Voucher</span>
-                </Link>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://wa.me/${selectedBooking.guestPhone.replace(/[^0-9]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-semibold px-4 py-2 rounded-xl transition"
-                  >
-                    WhatsApp
-                  </a>
-                  <button
-                    onClick={() => setSelectedBooking(null)}
-                    className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-5 py-2 rounded-xl transition"
-                  >
-                    Done
-                  </button>
-                </div>
+                  Close
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* MODAL: ADD WALK-IN RESERVATION */}
-        {walkInModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl max-w-lg w-full p-6 text-white space-y-4 shadow-2xl">
-              <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-gold-400" />
-                  <h3 className="text-lg font-serif font-bold text-white">
-                    Register Walk-in Guest
-                  </h3>
+        {/* MODAL: CREATE / EDIT ROOM */}
+        {roomModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
+            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl sm:rounded-3xl max-w-3xl lg:max-w-4xl w-full max-h-[92vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              {/* Sticky Modal Header */}
+              <div className="flex justify-between items-center px-5 sm:px-7 py-4 border-b border-gray-800 shrink-0 bg-[#0b1220]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold shrink-0">
+                    <Bed className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white leading-snug">
+                      {roomModalMode === "CREATE"
+                        ? "Add New Room Category"
+                        : `Edit Room: ${editingRoom.name || "Suite"}`}
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Changes will synchronize across website catalog and database backend.
+                    </p>
+                  </div>
                 </div>
                 <button
-                  onClick={() => setWalkInModalOpen(false)}
-                  className="p-1.5 rounded-full text-gray-400 hover:text-white"
+                  type="button"
+                  onClick={() => setRoomModalOpen(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                  title="Close modal"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {walkInError && (
-                <div className="p-3 bg-red-950/60 border border-red-800 text-red-200 text-xs rounded-lg">
-                  {walkInError}
-                </div>
-              )}
+              {/* Scrollable Form Body */}
+              <form onSubmit={handleSaveRoom} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-5 text-xs">
+                  {roomModalError && (
+                    <div className="p-3 bg-red-950/60 border border-red-800 text-red-200 text-xs rounded-xl flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{roomModalError}</span>
+                    </div>
+                  )}
 
-              <form onSubmit={handleCreateWalkIn} className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-gray-400 uppercase font-bold mb-1">
-                    Guest Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Mizanur Rahman"
-                    value={walkInName}
-                    onChange={(e) => setWalkInName(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                  />
-                </div>
+                  {/* 1. Name & Category */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    <div className="md:col-span-2">
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Room Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Deluxe Couple Room (AC)"
+                        value={editingRoom.name || ""}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, name: e.target.value }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Category *
+                      </label>
+                      <select
+                        value={editingRoom.category || "Couple"}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, category: e.target.value }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      >
+                        <option value="Couple">Couple</option>
+                        <option value="Deluxe">Deluxe</option>
+                        <option value="Twin">Twin</option>
+                        <option value="Family">Family</option>
+                        <option value="Single">Single / Transit</option>
+                        <option value="Suite">Presidential Suite</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                  {/* 2. Price, Inventory, Climate */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Base Rate (BDT ৳) *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min={500}
+                        value={editingRoom.basePrice ?? 2500}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, basePrice: Number(e.target.value) }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-gold-400 font-bold text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Available Units *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min={1}
+                        max={50}
+                        value={editingRoom.availableUnits ?? 5}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({
+                            ...prev,
+                            availableUnits: Number(e.target.value),
+                          }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Climate Control *
+                      </label>
+                      <select
+                        value={editingRoom.isAc ? "ac" : "non-ac"}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, isAc: e.target.value === "ac" }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      >
+                        <option value="ac">Split AC (Air Conditioned)</option>
+                        <option value="non-ac">Non-AC (Ceiling Fan)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 3. Specs: Capacity, Bed Type, Size */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Guest Capacity
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={editingRoom.capacity ?? 2}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, capacity: Number(e.target.value) }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Bed Configuration
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 1 King Bed"
+                        value={editingRoom.bedType || ""}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, bedType: e.target.value }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Room Size (Sq Ft)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 280"
+                        value={editingRoom.sizeSqFt ?? 280}
+                        onChange={(e) =>
+                          setEditingRoom((prev) => ({ ...prev, sizeSqFt: Number(e.target.value) }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. Description */}
                   <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Phone Number *
+                    <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                      Room Overview / Description
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="01XXXXXXXXX"
-                      value={walkInPhone}
-                      onChange={(e) => setWalkInPhone(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                    <textarea
+                      rows={3}
+                      placeholder="Describe comfort, soundproofing, bathroom, layover conveniences..."
+                      value={editingRoom.description || ""}
+                      onChange={(e) =>
+                        setEditingRoom((prev) => ({ ...prev, description: e.target.value }))
+                      }
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-gold-500 resize-y min-h-[75px] transition"
                     />
                   </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Email (Optional)
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="guest@mail.com"
-                      value={walkInEmail}
-                      onChange={(e) => setWalkInEmail(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                  {/* 5. Images Manager with Cloudinary */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-gray-400 uppercase font-bold text-[11px] flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-gold-400" />
+                        <span>Room Photography & Cloudinary Storage</span>
+                      </label>
+                      <span className="text-[11px] text-gray-400 font-medium">
+                        {Array.isArray(editingRoom.images) ? editingRoom.images.length : 0} photo(s)
+                      </span>
+                    </div>
+
+                    {/* Cloudinary Upload Dropzone */}
+                    <div className="relative border-2 border-dashed border-gray-700 hover:border-gold-500/60 rounded-2xl p-4 sm:p-5 bg-[#111a2d] transition text-center group cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={uploadingImage}
+                        onChange={handleFileUpload}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 disabled:cursor-not-allowed"
+                        id="room-photos-upload"
+                      />
+                      <div className="flex flex-col items-center justify-center py-2 space-y-2 pointer-events-none">
+                        <div className="w-11 h-11 rounded-xl bg-gold-500/10 group-hover:bg-gold-500/20 text-gold-400 flex items-center justify-center transition">
+                          {uploadingImage ? (
+                            <RefreshCw className="w-5 h-5 animate-spin text-gold-400" />
+                          ) : (
+                            <UploadCloud className="w-6 h-6 group-hover:scale-110 transition" />
+                          )}
+                        </div>
+                        <div>
+                          <span className="text-xs sm:text-sm font-bold text-white group-hover:text-gold-300 transition block">
+                            {uploadingImage
+                              ? "Uploading to Cloudinary..."
+                              : "Click or drag & drop room photos to upload to Cloudinary"}
+                          </span>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Stores images on Cloudinary CDN (JPG, PNG, WebP up to 10MB each)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {uploadError && (
+                      <div className="p-3 bg-red-950/60 border border-red-800 text-red-200 text-xs rounded-xl flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+                        <div>
+                          <p className="font-semibold">{uploadError}</p>
+                          {uploadError.includes("CLOUDINARY") && (
+                            <p className="text-[11px] text-red-300 mt-1">
+                              Add <code className="bg-black/40 px-1 py-0.5 rounded text-gold-300 font-mono">CLOUDINARY_CLOUD_NAME</code>, <code className="bg-black/40 px-1 py-0.5 rounded text-gold-300 font-mono">CLOUDINARY_API_KEY</code>, and <code className="bg-black/40 px-1 py-0.5 rounded text-gold-300 font-mono">CLOUDINARY_API_SECRET</code> to <code className="bg-black/40 px-1 py-0.5 rounded text-gold-300 font-mono">.env.local</code>.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Or paste external image URL */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
+                      <input
+                        type="url"
+                        placeholder="Or paste direct image URL (optional)"
+                        value={newImageUrl}
+                        onChange={(e) => setNewImageUrl(e.target.value)}
+                        className="flex-1 bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddImage}
+                        className="sm:w-auto w-full px-4 py-2.5 bg-[#172542] hover:bg-[#1d3055] text-gray-200 border border-gray-700 rounded-xl font-bold text-xs transition shrink-0"
+                      >
+                        + Add URL
+                      </button>
+                    </div>
+
+                    {/* Thumbnail gallery */}
+                    {Array.isArray(editingRoom.images) && editingRoom.images.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 pt-1">
+                        {editingRoom.images.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video bg-black shadow-sm"
+                          >
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            {idx === 0 && (
+                              <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-gold-500 text-black text-[9px] font-bold rounded">
+                                Cover
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(idx)}
+                              className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition shadow"
+                              title="Remove photo"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 6. Amenities */}
                   <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      NID / Passport No *
+                    <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                      Amenities (comma-separated list)
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 1994827162910"
-                      value={walkInNid}
-                      onChange={(e) => setWalkInNid(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                      placeholder="Split AC, King Size Bed, Ensuite Bathroom, 24/7 Hot Water, High-Speed Wi-Fi, LED TV"
+                      value={amenitiesInput}
+                      onChange={(e) => setAmenitiesInput(e.target.value)}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-gold-500 transition"
                     />
+                    <p className="text-[10px] text-gray-500 mt-1">Separate amenities with commas.</p>
                   </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Permanent Address *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Village/Area, Thana, District"
-                      value={walkInAddress}
-                      onChange={(e) => setWalkInAddress(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Occupation *
-                    </label>
-                    <select
-                      value={walkInOccupation}
-                      onChange={(e) => setWalkInOccupation(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                  {/* 7. Featured Toggle */}
+                  <div className="flex items-center gap-3 pt-1 bg-[#121c31] p-3 rounded-xl border border-gray-800">
+                    <input
+                      type="checkbox"
+                      id="featuredRoomToggle"
+                      checked={Boolean(editingRoom.featured)}
+                      onChange={(e) =>
+                        setEditingRoom((prev) => ({ ...prev, featured: e.target.checked }))
+                      }
+                      className="w-4 h-4 rounded text-gold-500 bg-[#141f36] border-gray-700 focus:ring-gold-500 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="featuredRoomToggle"
+                      className="text-gray-300 font-medium cursor-pointer text-xs"
                     >
-                      <option value="Private Service">Private Service</option>
-                      <option value="Business">Business</option>
-                      <option value="Govt Service">Govt Service</option>
-                      <option value="Expatriate">Expatriate / প্রবাসী</option>
-                      <option value="Student">Student</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Nationality *
+                      Mark as Featured Suite on Homepage Showcase
                     </label>
-                    <input
-                      type="text"
-                      value={walkInNationality}
-                      onChange={(e) => setWalkInNationality(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Allotted Room #
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 204"
-                      value={walkInAllottedRoom}
-                      onChange={(e) => setWalkInAllottedRoom(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500 font-mono"
-                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Father/Husband Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Optional"
-                      value={walkInFatherOrHusband}
-                      onChange={(e) => setWalkInFatherOrHusband(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Purpose of Travel
-                    </label>
-                    <select
-                      value={walkInPurpose}
-                      onChange={(e) => setWalkInPurpose(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                {/* Sticky Modal Footer */}
+                <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 px-5 sm:px-7 py-4 border-t border-gray-800 shrink-0 bg-[#0b1220]">
+                  {roomModalMode === "EDIT" && editingRoom.id ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDeleteRoom(editingRoom.id!, editingRoom.name || "Suite")
+                      }
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-950/40 border border-red-800/60 transition flex items-center justify-center gap-1.5"
                     >
-                      <option value="Airport Transit">Airport Transit</option>
-                      <option value="Hajj / Umrah">Hajj / Umrah</option>
-                      <option value="Business">Business</option>
-                      <option value="Medical">Medical</option>
-                      <option value="Family / Leisure">Family / Leisure</option>
-                    </select>
-                  </div>
-                </div>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Suite</span>
+                    </button>
+                  ) : (
+                    <div />
+                  )}
 
-                <div>
-                  <label className="block text-gray-400 uppercase font-bold mb-1">
-                    Select Room Category *
-                  </label>
-                  <select
-                    value={walkInRoomId}
-                    onChange={(e) => setWalkInRoomId(e.target.value)}
-                    className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                  >
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} — ৳{r.basePrice.toLocaleString()} / night
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Check-In Date
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={walkInCheckIn}
-                      onChange={(e) => setWalkInCheckIn(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Check-Out Date
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={walkInCheckOut}
-                      onChange={(e) => setWalkInCheckOut(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Payment Method
-                    </label>
-                    <select
-                      value={walkInPaymentMethod}
-                      onChange={(e) => setWalkInPaymentMethod(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                  <div className="flex items-center gap-3 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setRoomModalOpen(false)}
+                      className="px-5 py-2.5 text-xs text-gray-400 hover:text-white transition font-semibold"
                     >
-                      <option value="PAY_AT_HOTEL">Cash on Counter</option>
-                      <option value="BKASH">bKash Merchant</option>
-                      <option value="NAGAD">Nagad</option>
-                      <option value="CARD">POS Card Terminal</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-gray-400 uppercase font-bold mb-1">
-                      Payment Status
-                    </label>
-                    <select
-                      value={walkInPaymentStatus}
-                      onChange={(e) => setWalkInPaymentStatus(e.target.value)}
-                      className="w-full bg-[#141f36] border border-gray-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-gold-500"
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={roomSubmitting}
+                      className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-6 py-2.5 rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-2 shadow"
                     >
-                      <option value="PAID">PAID (Full)</option>
-                      <option value="PENDING">PENDING (At Check-out)</option>
-                    </select>
+                      <Check className="w-4 h-4" />
+                      <span>
+                        {roomSubmitting
+                          ? "Saving..."
+                          : roomModalMode === "CREATE"
+                          ? "Create Room"
+                          : "Save Changes"}
+                      </span>
+                    </button>
                   </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setWalkInModalOpen(false)}
-                    className="px-4 py-2 text-gray-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={walkInSubmitting}
-                    className="bg-gold-500 hover:bg-gold-400 text-black font-bold px-6 py-2 rounded-xl transition disabled:opacity-50"
-                  >
-                    {walkInSubmitting ? "Creating..." : "Confirm & Check In"}
-                  </button>
                 </div>
               </form>
             </div>

@@ -74,8 +74,45 @@
 - **Styling**: Tailwind CSS with custom Gold and Dark luxury tokens
 - **Icons**: Lucide React
 - **Animations & Effects**: Framer Motion, Canvas Confetti
-- **Database**: SQLite via Prisma ORM (`prisma/schema.prisma`)
+- **Database (Primary Cloud)**: **Supabase (PostgreSQL)** via `@supabase/supabase-js` with Row Level Security (RLS)
+- **Database (Local / Offline)**: SQLite via Prisma ORM (`prisma/schema.prisma`)
+- **Resilient Fallback**: In-memory synchronized store guaranteeing zero crashes on cold starts
 - **Typography**: Playfair Display (Serif headings) & Plus Jakarta Sans / Inter (Modern UI)
+
+---
+
+## ⚡ Supabase Cloud Backend Setup
+
+Hotel Al Safa is configured with **Supabase as its enterprise cloud database backend**.
+
+### 1. Create a Free Supabase Project
+1. Log in to [supabase.com](https://supabase.com) and create a new project.
+2. Note your **Project URL**, **Anon Key**, and **Service Role Key** under `Project Settings -> API`.
+
+### 2. Run Database Schema in Supabase SQL Editor
+1. In the Supabase Dashboard, click **SQL Editor** -> **New Query**.
+2. Open [`supabase/schema.sql`](./supabase/schema.sql) in this repository and paste the contents into the SQL Editor.
+3. Click **Run**.
+   *This automatically creates all 5 tables (`room_types`, `bookings`, `inquiries`, `promo_codes`, `reviews`), high-performance indexes, Row Level Security (RLS) policies, and pre-seeds the 10 official room types, promo codes, and reviews.*
+
+### 3. Add Environment Variables to `.env.local`
+In your project root, open or create `.env.local` and add:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI...
+```
+
+### 4. Sync / Seed Supabase Database
+You can sync or seed room types and promos to Supabase anytime with either:
+- **CLI Command**:
+  ```bash
+  npm run seed:supabase
+  ```
+- **Admin Dashboard**:
+  Log in to `/admin` and click **"Sync / Seed Supabase"** in the Supabase Cloud Database Backend status bar.
+- **Diagnostics API**:
+  Check connection health anytime at `/api/supabase/status`.
 
 ---
 

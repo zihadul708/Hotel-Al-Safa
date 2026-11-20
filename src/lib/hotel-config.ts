@@ -1,8 +1,8 @@
 // Hotel Al Safa - Central Contact & Payment Configuration
 
 export const HOTEL_CONFIG = {
-  name: "Hotel Al Safa",
-  tagline: "Luxury Transit & Suites • Dhaka",
+  name: "Hotel Al Safa International",
+  tagline: "Luxury Airport Transit • Dhaka",
   address: "Mili Super Tower-2, Ashkona, Hajj Camp Road, Dakshinkhan, Dhaka-1230",
 
   // Official WhatsApp & Phone
@@ -10,6 +10,7 @@ export const HOTEL_CONFIG = {
   phonePrimary: "+880 1916-944212",
   phoneDisplay: "+880 1916-944212",
   email: "hotelalsafainternational1@gmail.com",
+  googleMaps: "https://maps.app.goo.gl/4MH89QCucKXE5hHv5",
 
   // Social Media Links
   socialLinks: {

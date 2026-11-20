@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import confetti from "canvas-confetti";
 import {
   X,
   Calendar,
@@ -265,12 +264,17 @@ export function BookingModal({
       setConfirmedBooking(booking);
       setStep(4);
 
-      // Trigger celebratory confetti
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
+      // Trigger celebratory confetti (dynamically imported for browser execution)
+      try {
+        const confetti = (await import("canvas-confetti")).default;
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      } catch (confettiErr) {
+        console.warn("Celebration animation skipped:", confettiErr);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred.");
     } finally {
