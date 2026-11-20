@@ -475,3 +475,44 @@ VALUES
     'room-twin-economy'
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- ==============================================================================
+-- ADMIN USERS & HERO SLIDES TABLES
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.admin_users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT DEFAULT 'ADMIN',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.hero_slides (
+    id TEXT PRIMARY KEY,
+    image TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    title TEXT NOT NULL,
+    "order" INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hero_slides ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view active hero slides" ON public.hero_slides;
+CREATE POLICY "Public can view active hero slides" ON public.hero_slides
+    FOR SELECT USING (is_active = true);
+
+DROP POLICY IF EXISTS "Service role full access on hero slides" ON public.hero_slides;
+CREATE POLICY "Service role full access on hero slides" ON public.hero_slides
+    FOR ALL USING (auth.role() = 'service_role' OR auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Service role full access on admin users" ON public.admin_users;
+CREATE POLICY "Service role full access on admin users" ON public.admin_users
+    FOR ALL USING (auth.role() = 'service_role' OR auth.role() = 'authenticated');

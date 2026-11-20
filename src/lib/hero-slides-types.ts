@@ -1,0 +1,53 @@
+export interface HeroSlide {
+  id: string;
+  image: string;
+  tag: string;
+  title: string;
+  order: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const INITIAL_HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "slide-1",
+    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80",
+    tag: "Airport Transit Hotel & Luxury Facade",
+    title: "Your Peaceful Haven Just 5 Minutes from Dhaka Airport",
+    order: 1,
+    isActive: true,
+  },
+  {
+    id: "slide-2",
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1920&q=80",
+    tag: "Deluxe Air-Conditioned Comfort",
+    title: "Soundproof Rooms Designed for International Rest",
+    order: 2,
+    isActive: true,
+  },
+  {
+    id: "slide-3",
+    image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1920&q=80",
+    tag: "Ashkona Hajj & Umrah Specialists",
+    title: "Spacious Suites 3 Minutes Walk from Hajj Camp",
+    order: 3,
+    isActive: true,
+  },
+  {
+    id: "slide-4",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1920&q=80",
+    tag: "24/7 Front Desk & Concierge",
+    title: "Warm Bangladeshi Hospitality at Any Arrival Hour",
+    order: 4,
+    isActive: true,
+  },
+  {
+    id: "slide-5",
+    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1920&q=80",
+    tag: "Modern Amenities & 100% Power Backup",
+    title: "High-Speed Fiber Wi-Fi, Geyser & Continuous Generator",
+    order: 5,
+    isActive: true,
+  },
+];

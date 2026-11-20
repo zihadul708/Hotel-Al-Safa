@@ -94,3 +94,25 @@ model PromoCode {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 }
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  salt         String
+  name         String
+  role         String   @default("ADMIN") // SUPER_ADMIN, ADMIN, STAFF
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model HeroSlide {
+  id        String   @id @default(uuid())
+  image     String
+  tag       String
+  title     String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

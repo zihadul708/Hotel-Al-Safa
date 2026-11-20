@@ -37,6 +37,8 @@ import { BookingModal } from "@/components/booking-modal";
 import { RoomDetailModal } from "@/components/room-detail-modal";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 import { HOTEL_CONFIG, getWhatsAppUrl } from "@/lib/hotel-config";
+import { optimizeImageUrl } from "@/lib/image-utils";
+import { INITIAL_HERO_SLIDES, HeroSlide } from "@/lib/hero-slides-types";
 
 export interface RoomTypeData {
   id: string;
@@ -54,56 +56,45 @@ export interface RoomTypeData {
   featured: boolean;
 }
 
-// Hero Rotating Moving Images
-const heroSlides = [
-  {
-    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2000&q=85",
-    tag: "Airport Transit Hotel & Luxury Facade",
-    title: "Your Peaceful Haven Just 5 Minutes from Dhaka Airport",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=2000&q=85",
-    tag: "Deluxe Air-Conditioned Comfort",
-    title: "Soundproof Rooms Designed for International Rest",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=2000&q=85",
-    tag: "Ashkona Hajj & Umrah Specialists",
-    title: "Spacious Suites 3 Minutes Walk from Hajj Camp",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=2000&q=85",
-    tag: "24/7 Front Desk & Concierge",
-    title: "Warm Bangladeshi Hospitality at Any Arrival Hour",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=2000&q=85",
-    tag: "Modern Amenities & 100% Power Backup",
-    title: "High-Speed Fiber Wi-Fi, Geyser & Continuous Generator",
-  },
-];
-
 export default function HomePage() {
   const [rooms, setRooms] = useState<RoomTypeData[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
 
-  // Hero Moving Slides State
+  // Dynamic Hero Moving Slides State
+  const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Load latest custom hero slides from API
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
+    fetch("/api/hero-slides")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setSlides(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Hero slides fetch fallback to initial:", err);
+      });
   }, []);
 
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
   const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
   const handleNextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
 
   // Booking Modal State
@@ -175,11 +166,11 @@ export default function HomePage() {
         <section className="relative min-h-[680px] lg:min-h-[760px] flex items-center justify-center bg-[#070d18] text-white overflow-hidden py-16 px-4">
           {/* Moving Background Image Slides with Ken Burns Smooth Transition */}
           <div className="absolute inset-0 z-0 overflow-hidden">
-            {heroSlides.map((slide, index) => {
+            {slides.map((slide, index) => {
               const isActive = index === currentSlide;
               return (
                 <div
-                  key={index}
+                  key={slide.id || index}
                   className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                     isActive
                       ? "opacity-40 scale-105 z-10"
@@ -187,11 +178,13 @@ export default function HomePage() {
                   }`}
                 >
                   <Image
-                    src={slide.image}
+                    src={optimizeImageUrl(slide.image, 1920)}
                     alt={slide.title}
                     fill
+                    sizes="100vw"
                     className="object-cover"
                     priority={index === 0}
+                    loading={index === 0 ? "eager" : "lazy"}
                   />
                 </div>
               );
@@ -244,7 +237,7 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-300 text-xs sm:text-sm font-medium tracking-wider uppercase backdrop-blur-md"
             >
               <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-              <span>{heroSlides[currentSlide].tag}</span>
+              <span>{slides[currentSlide]?.tag || "Airport Transit Hotel & Luxury Facade"}</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -376,9 +369,9 @@ export default function HomePage() {
 
             {/* Slide Navigation Dots & Counter */}
             <div className="pt-3 flex items-center justify-center gap-2">
-              {heroSlides.map((slide, idx) => (
+              {slides.map((slide, idx) => (
                 <button
-                  key={idx}
+                  key={slide.id || idx}
                   onClick={() => setCurrentSlide(idx)}
                   aria-label={`Go to hero slide ${idx + 1}`}
                   className={`transition-all duration-300 rounded-full h-2.5 ${
@@ -389,7 +382,7 @@ export default function HomePage() {
                 />
               ))}
               <span className="text-[11px] text-gold-300/80 ml-2 font-mono">
-                {String(currentSlide + 1).padStart(2, "0")} / {String(heroSlides.length).padStart(2, "0")}
+                {String(currentSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
               </span>
             </div>
           </div>
@@ -672,10 +665,12 @@ export default function HomePage() {
                         {/* Image Preview Container */}
                         <div className="relative h-60 w-full overflow-hidden bg-gray-900">
                           <Image
-                            src={mainImage}
+                            src={optimizeImageUrl(mainImage, 800)}
                             alt={room.name}
                             fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="object-cover group-hover:scale-105 transition-transform duration-700"
+                            loading="lazy"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 

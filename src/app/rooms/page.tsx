@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { optimizeImageUrl } from "@/lib/image-utils";
 import { FloatingActions } from "@/components/whatsapp-button";
 import { BookingModal } from "@/components/booking-modal";
 import { RoomDetailModal } from "@/components/room-detail-modal";
@@ -243,10 +244,12 @@ export default function RoomsPage() {
                       {/* Image Preview Container */}
                       <div className="relative h-64 w-full overflow-hidden bg-gray-900">
                         <Image
-                          src={mainImage}
+                          src={optimizeImageUrl(mainImage, 800)}
                           alt={room.name}
                           fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
+                          loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 

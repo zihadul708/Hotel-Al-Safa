@@ -17,12 +17,23 @@ import {
   Trash2,
   AlertCircle,
   Eye,
+  EyeOff,
   Check,
   X,
   Lock,
   MessageSquare,
   ImageIcon,
   UploadCloud,
+  User,
+  Key,
+  Shield,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  Sliders,
+  CheckCircle,
+  LogOut,
+  UserPlus,
 } from "lucide-react";
 
 interface AdminBooking {
@@ -92,11 +103,35 @@ interface InquiryItem {
   createdAt: string;
 }
 
+interface SafeAdminUser {
+  id: string;
+  username: string;
+  name: string;
+  role: "SUPER_ADMIN" | "ADMIN" | "STAFF";
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface HeroSlideData {
+  id: string;
+  image: string;
+  tag: string;
+  title: string;
+  order: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export default function AdminDashboardPage() {
-  // Staff Auth Gate (Session based)
+  // Staff Auth Gate (Username & Password)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [pinInput, setPinInput] = useState("");
-  const [pinError, setPinError] = useState("");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<SafeAdminUser | null>(null);
 
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [rooms, setRooms] = useState<RoomItem[]>([]);
@@ -104,10 +139,52 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<"BOOKINGS" | "ROOMS" | "INQUIRIES">("BOOKINGS");
+  const [activeTab, setActiveTab] = useState<
+    "BOOKINGS" | "ROOMS" | "HERO_SLIDES" | "INQUIRIES" | "ADMIN_USERS"
+  >("BOOKINGS");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
+
+  // Admin Users State
+  const [adminUsers, setAdminUsers] = useState<SafeAdminUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userModalOpen, setUserModalOpen] = useState(false);
+  const [userModalMode, setUserModalMode] = useState<"CREATE" | "PASSWORD">("CREATE");
+  const [selectedUserForPassword, setSelectedUserForPassword] = useState<SafeAdminUser | null>(null);
+  const [userForm, setUserForm] = useState({
+    username: "",
+    name: "",
+    password: "",
+    confirmPassword: "",
+    role: "ADMIN" as "SUPER_ADMIN" | "ADMIN" | "STAFF",
+  });
+  const [userFormError, setUserFormError] = useState("");
+  const [userSubmitting, setUserSubmitting] = useState(false);
+
+  // Quick Self Password Change Modal State
+  const [selfPasswordModalOpen, setSelfPasswordModalOpen] = useState(false);
+  const [selfNewPassword, setSelfNewPassword] = useState("");
+  const [selfConfirmPassword, setSelfConfirmPassword] = useState("");
+  const [selfPasswordError, setSelfPasswordError] = useState("");
+  const [selfPasswordSuccess, setSelfPasswordSuccess] = useState("");
+  const [selfPasswordSubmitting, setSelfPasswordSubmitting] = useState(false);
+
+  // Hero Slides State
+  const [heroSlidesList, setHeroSlidesList] = useState<HeroSlideData[]>([]);
+  const [loadingSlides, setLoadingSlides] = useState(false);
+  const [slideModalOpen, setSlideModalOpen] = useState(false);
+  const [slideModalMode, setSlideModalMode] = useState<"CREATE" | "EDIT">("CREATE");
+  const [slideForm, setSlideForm] = useState<Partial<HeroSlideData>>({
+    image: "",
+    tag: "",
+    title: "",
+    isActive: true,
+  });
+  const [slideFormError, setSlideFormError] = useState("");
+  const [slideSubmitting, setSlideSubmitting] = useState(false);
+  const [uploadingSlideImage, setUploadingSlideImage] = useState(false);
+  const [uploadSlideError, setUploadSlideError] = useState("");
 
   // Quick Room Price Edit state
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
@@ -128,45 +205,81 @@ export default function AdminDashboardPage() {
   // Check auth on mount
   useEffect(() => {
     const authStatus = sessionStorage.getItem("alsafa_staff_auth");
+    const storedUser = sessionStorage.getItem("alsafa_admin_user");
     if (authStatus === "true") {
       setIsAuthenticated(true);
+      if (storedUser) {
+        try {
+          setCurrentUser(JSON.parse(storedUser));
+        } catch {}
+      }
     }
   }, []);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default PIN: 1234 or 2026
-    if (pinInput === "1234" || pinInput === "2026") {
+    setAuthLoading(true);
+    setAuthError("");
+
+    try {
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: usernameInput.trim(),
+          password: passwordInput,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Authentication failed.");
+      }
+
       sessionStorage.setItem("alsafa_staff_auth", "true");
+      sessionStorage.setItem("alsafa_admin_user", JSON.stringify(data.user));
+      setCurrentUser(data.user);
       setIsAuthenticated(true);
-      setPinError("");
-    } else {
-      setPinError("Invalid Staff PIN code. (Default PIN: 1234)");
+      setAuthError("");
+      setPasswordInput("");
+    } catch (err: any) {
+      setAuthError(err.message || "Invalid credentials.");
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("alsafa_staff_auth");
+    sessionStorage.removeItem("alsafa_admin_user");
     setIsAuthenticated(false);
-    setPinInput("");
+    setCurrentUser(null);
+    setUsernameInput("");
+    setPasswordInput("");
   };
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [resBookings, resRooms, resInquiries] = await Promise.all([
+      const [resBookings, resRooms, resInquiries, resSlides, resUsers] = await Promise.all([
         fetch("/api/bookings"),
         fetch("/api/rooms"),
         fetch("/api/inquiries"),
+        fetch("/api/hero-slides?all=true"),
+        fetch("/api/admin/users"),
       ]);
 
       const dataBookings = resBookings.ok ? await resBookings.json() : [];
       const dataRooms = resRooms.ok ? await resRooms.json() : [];
       const dataInquiries = resInquiries.ok ? await resInquiries.json() : [];
+      const dataSlides = resSlides.ok ? await resSlides.json() : [];
+      const dataUsers = resUsers.ok ? await resUsers.json() : [];
 
       setBookings(Array.isArray(dataBookings) ? dataBookings : []);
       setRooms(Array.isArray(dataRooms) ? dataRooms : []);
       setInquiries(Array.isArray(dataInquiries) ? dataInquiries : []);
+      setHeroSlidesList(Array.isArray(dataSlides) ? dataSlides : []);
+      setAdminUsers(Array.isArray(dataUsers) ? dataUsers : []);
     } catch (err) {
       console.error("Failed to load admin data:", err);
     } finally {
@@ -443,6 +556,318 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Admin Users Handlers
+  const openCreateUserModal = () => {
+    setUserModalMode("CREATE");
+    setSelectedUserForPassword(null);
+    setUserForm({
+      username: "",
+      name: "",
+      password: "",
+      confirmPassword: "",
+      role: "ADMIN",
+    });
+    setUserFormError("");
+    setUserModalOpen(true);
+  };
+
+  const openChangePasswordModal = (user: SafeAdminUser) => {
+    setUserModalMode("PASSWORD");
+    setSelectedUserForPassword(user);
+    setUserForm({
+      username: user.username,
+      name: user.name,
+      password: "",
+      confirmPassword: "",
+      role: user.role,
+    });
+    setUserFormError("");
+    setUserModalOpen(true);
+  };
+
+  const handleUserFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserFormError("");
+
+    if (!userForm.password || userForm.password.length < 6) {
+      setUserFormError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (userForm.password !== userForm.confirmPassword) {
+      setUserFormError("Passwords do not match.");
+      return;
+    }
+
+    setUserSubmitting(true);
+    try {
+      if (userModalMode === "CREATE") {
+        const res = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: userForm.username.trim(),
+            name: userForm.name.trim(),
+            password: userForm.password,
+            role: userForm.role,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create user.");
+      } else if (selectedUserForPassword) {
+        const res = await fetch(`/api/admin/users/${selectedUserForPassword.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password: userForm.password,
+            name: userForm.name.trim(),
+            role: userForm.role,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update password.");
+      }
+
+      setUserModalOpen(false);
+      await fetchDashboardData();
+    } catch (err: any) {
+      setUserFormError(err.message || "Operation failed.");
+    } finally {
+      setUserSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async (user: SafeAdminUser) => {
+    if (currentUser?.id === user.id) {
+      alert("You cannot delete your own currently active account.");
+      return;
+    }
+    if (!confirm(`Are you sure you want to permanently delete user "${user.username}" (${user.name})?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/admin/users/${user.id}?requesterId=${encodeURIComponent(currentUser?.id || "")}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user.");
+      await fetchDashboardData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete user.");
+    }
+  };
+
+  const handleSelfPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSelfPasswordError("");
+    setSelfPasswordSuccess("");
+
+    if (!selfNewPassword || selfNewPassword.length < 6) {
+      setSelfPasswordError("New password must be at least 6 characters.");
+      return;
+    }
+
+    if (selfNewPassword !== selfConfirmPassword) {
+      setSelfPasswordError("Passwords do not match.");
+      return;
+    }
+
+    if (!currentUser) return;
+
+    setSelfPasswordSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/users/${currentUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: selfNewPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to change password.");
+
+      setSelfPasswordSuccess("Password updated successfully!");
+      setSelfNewPassword("");
+      setSelfConfirmPassword("");
+      setTimeout(() => {
+        setSelfPasswordModalOpen(false);
+        setSelfPasswordSuccess("");
+      }, 1200);
+    } catch (err: any) {
+      setSelfPasswordError(err.message || "Failed to update password.");
+    } finally {
+      setSelfPasswordSubmitting(false);
+    }
+  };
+
+  // Hero Slides Handlers
+  const openCreateSlideModal = () => {
+    setSlideModalMode("CREATE");
+    setSlideForm({
+      image: "",
+      tag: "Airport Transit Hotel & Luxury Facade",
+      title: "",
+      isActive: true,
+    });
+    setSlideFormError("");
+    setSlideModalOpen(true);
+  };
+
+  const openEditSlideModal = (slide: HeroSlideData) => {
+    setSlideModalMode("EDIT");
+    setSlideForm({ ...slide });
+    setSlideFormError("");
+    setSlideModalOpen(true);
+  };
+
+  const handleSlideImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingSlideImage(true);
+    setUploadSlideError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Image upload failed.");
+      }
+
+      if (data.url) {
+        setSlideForm((prev) => ({ ...prev, image: data.url }));
+      }
+    } catch (err: any) {
+      setUploadSlideError(err.message || "Failed to upload image to Cloudinary.");
+    } finally {
+      setUploadingSlideImage(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleSlideFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSlideFormError("");
+
+    if (!slideForm.image?.trim()) {
+      setSlideFormError("Slide image is required. Upload an image or enter a URL.");
+      return;
+    }
+    if (!slideForm.title?.trim()) {
+      setSlideFormError("Slide headline title is required.");
+      return;
+    }
+
+    setSlideSubmitting(true);
+    try {
+      if (slideModalMode === "CREATE") {
+        const res = await fetch("/api/hero-slides", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: slideForm.image.trim(),
+            tag: slideForm.tag?.trim() || "Hotel Al Safa International",
+            title: slideForm.title.trim(),
+            isActive: slideForm.isActive ?? true,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create slide.");
+      } else if (slideForm.id) {
+        const res = await fetch("/api/hero-slides", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: slideForm.id,
+            updates: {
+              image: slideForm.image.trim(),
+              tag: slideForm.tag?.trim() || "Hotel Al Safa International",
+              title: slideForm.title.trim(),
+              isActive: slideForm.isActive ?? true,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update slide.");
+      }
+
+      setSlideModalOpen(false);
+      await fetchDashboardData();
+    } catch (err: any) {
+      setSlideFormError(err.message || "Failed to save slide.");
+    } finally {
+      setSlideSubmitting(false);
+    }
+  };
+
+  const handleDeleteSlide = async (slide: HeroSlideData) => {
+    if (!confirm(`Are you sure you want to delete this slide: "${slide.title}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/hero-slides?id=${encodeURIComponent(slide.id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete slide.");
+      await fetchDashboardData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete slide.");
+    }
+  };
+
+  const handleMoveSlide = async (index: number, direction: "UP" | "DOWN") => {
+    const targetIndex = direction === "UP" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= heroSlidesList.length) return;
+
+    const reordered = [...heroSlidesList];
+    const temp = reordered[index];
+    reordered[index] = reordered[targetIndex];
+    reordered[targetIndex] = temp;
+
+    setHeroSlidesList(reordered);
+
+    try {
+      await fetch("/api/hero-slides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reorder", slides: reordered }),
+      });
+    } catch (err) {
+      console.warn("Failed to persist slide reorder:", err);
+      await fetchDashboardData();
+    }
+  };
+
+  const handleResetSlides = async () => {
+    if (!confirm("Are you sure you want to restore the default 5 curated hero slides?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/hero-slides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+      const data = await res.json();
+      if (data.slides) {
+        setHeroSlidesList(data.slides);
+      }
+      await fetchDashboardData();
+    } catch (err: any) {
+      alert(err.message || "Failed to reset slides.");
+    }
+  };
+
   // KPIs
   const totalRevenue = bookings
     .filter((b) => b.paymentStatus === "PAID")
@@ -465,7 +890,7 @@ export default function AdminDashboardPage() {
     return matchesStatus && matchesSearch;
   });
 
-  // PIN Lock Screen
+  // Admin Authentication Screen
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#070c17] flex items-center justify-center p-4 text-white">
@@ -481,42 +906,86 @@ export default function AdminDashboardPage() {
 
           <div>
             <h1 className="text-2xl font-serif font-bold text-white tracking-wide">
-              HOTEL AL SAFA
+              HOTEL AL SAFA INTERNATIONAL
             </h1>
             <p className="text-xs text-gold-400 uppercase tracking-widest font-semibold mt-1">
-              Front Desk Staff Security Access
+              Admin & Staff Security Access
             </p>
           </div>
 
-          <form onSubmit={handlePinSubmit} className="space-y-4 text-left">
+          <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
             <div>
               <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1.5 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-gold-400" />
-                <span>Enter Staff PIN Code</span>
+                <User className="w-3.5 h-3.5 text-gold-400" />
+                <span>Username</span>
               </label>
               <input
-                type="password"
+                type="text"
                 required
                 autoFocus
-                placeholder="Enter PIN (Default: 1234)"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-3 text-center text-lg tracking-widest text-white focus:outline-none focus:border-gold-500 font-mono"
+                placeholder="Enter username (e.g. admin)"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-gold-500"
               />
             </div>
 
-            {pinError && (
-              <p className="text-xs text-red-400 bg-red-950/60 p-2.5 rounded-lg border border-red-800 text-center">
-                {pinError}
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-gold-400" />
+                  <span>Password</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-400 hover:text-gold-400 text-[11px] flex items-center gap-1"
+                >
+                  {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  <span>{showPassword ? "Hide" : "Show"}</span>
+                </button>
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Enter your password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-gold-500 pr-10 font-mono"
+                />
+              </div>
+            </div>
+
+            {authError && (
+              <p className="text-xs text-red-400 bg-red-950/60 p-3 rounded-xl border border-red-800 text-center">
+                {authError}
               </p>
             )}
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold py-3 rounded-xl transition text-sm shadow-md"
+              disabled={authLoading}
+              className="w-full bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold py-3 rounded-xl transition text-sm shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              Unlock Staff Portal
+              {authLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Verifying Credentials...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Login to Dashboard</span>
+                </>
+              )}
             </button>
+
+            {/* Quick Helper Credentials Note */}
+            <div className="p-3 bg-[#111c33] rounded-xl border border-gold-500/20 text-[11px] text-gray-400 text-center space-y-0.5">
+              <span className="text-gold-300 font-semibold block">Default System Credentials</span>
+              <span>Username: <strong className="text-white font-mono">admin</strong> &bull; Password: <strong className="text-white font-mono">admin123</strong></span>
+            </div>
           </form>
 
           <div className="pt-2 border-t border-gray-800 text-center">
@@ -555,26 +1024,68 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {currentUser && (
+            <div className="flex items-center gap-2 bg-[#141f36] border border-gray-700/80 px-3 py-1.5 rounded-xl text-xs shadow-sm">
+              <div className="w-6 h-6 rounded-lg bg-gold-400/20 text-gold-400 flex items-center justify-center font-bold">
+                <User className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-left">
+                <span className="font-bold text-white block leading-none">
+                  {currentUser.name || currentUser.username}
+                </span>
+                <span className="text-[10px] text-gold-400 font-semibold uppercase tracking-wider">
+                  {currentUser.role === "SUPER_ADMIN"
+                    ? "Super Admin"
+                    : currentUser.role === "ADMIN"
+                    ? "Admin"
+                    : "Staff"}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setSelfNewPassword("");
+                  setSelfConfirmPassword("");
+                  setSelfPasswordError("");
+                  setSelfPasswordSuccess("");
+                  setSelfPasswordModalOpen(true);
+                }}
+                title="Change My Password"
+                className="ml-1 p-1 text-gray-400 hover:text-gold-400 hover:bg-gray-800 rounded transition"
+              >
+                <Key className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           <button
             onClick={openCreateRoomModal}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-lg shadow transition"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-3.5 py-2 rounded-xl shadow transition"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Add New Room</span>
+            <span>+ Add Room</span>
+          </button>
+
+          <button
+            onClick={openCreateSlideModal}
+            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gold-400 text-xs px-3.5 py-2 rounded-xl border border-gold-500/30 transition"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>+ Add Hero Slide</span>
           </button>
 
           <button
             onClick={fetchDashboardData}
-            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gray-300 text-xs px-3.5 py-2 rounded-lg border border-gray-700 transition"
+            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gray-300 text-xs px-3 py-2 rounded-xl border border-gray-700 transition"
+            title="Refresh dashboard records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-gold-400" : ""}`} />
-            <span>Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
           <Link
             href="/"
             target="_blank"
-            className="flex items-center gap-1.5 bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 text-xs px-3.5 py-2 rounded-lg border border-gold-500/30 transition"
+            className="flex items-center gap-1.5 bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 text-xs px-3 py-2 rounded-xl border border-gold-500/30 transition"
           >
             <span>Live Site</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -582,10 +1093,11 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={handleLogout}
-            title="Lock Portal"
-            className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition"
+            title="Log Out"
+            className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-gray-400 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-800/40 rounded-xl transition"
           >
-            <Lock className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
@@ -648,36 +1160,58 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-800 pb-3">
           <button
             onClick={() => setActiveTab("BOOKINGS")}
-            className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
+            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               activeTab === "BOOKINGS"
                 ? "bg-gold-500 text-black shadow-md"
                 : "bg-[#111a2c] text-gray-400 hover:text-white"
             }`}
           >
-            Reservation Records ({bookings.length})
+            Reservations ({bookings.length})
           </button>
           <button
             onClick={() => setActiveTab("ROOMS")}
-            className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
+            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               activeTab === "ROOMS"
                 ? "bg-gold-500 text-black shadow-md"
                 : "bg-[#111a2c] text-gray-400 hover:text-white"
             }`}
           >
-            Room Rates & Pricing Manager ({rooms.length})
+            Rooms & Pricing ({rooms.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("HERO_SLIDES")}
+            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 ${
+              activeTab === "HERO_SLIDES"
+                ? "bg-gold-500 text-black shadow-md"
+                : "bg-[#111a2c] text-gray-400 hover:text-white"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Hero Sliding Images ({heroSlidesList.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("ADMIN_USERS")}
+            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 ${
+              activeTab === "ADMIN_USERS"
+                ? "bg-gold-500 text-black shadow-md"
+                : "bg-[#111a2c] text-gray-400 hover:text-white"
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Admin Users ({adminUsers.length})</span>
           </button>
           <button
             onClick={() => setActiveTab("INQUIRIES")}
-            className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
+            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               activeTab === "INQUIRIES"
                 ? "bg-gold-500 text-black shadow-md"
                 : "bg-[#111a2c] text-gray-400 hover:text-white"
             }`}
           >
-            Guest Messages & Inquiries ({inquiries.length})
+            Inquiries ({inquiries.length})
           </button>
         </div>
 
@@ -1125,6 +1659,262 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: HERO SLIDES MANAGER */}
+        {activeTab === "HERO_SLIDES" && (
+          <div className="space-y-4">
+            <div className="bg-[#0b1220] p-4 rounded-2xl border border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-gold-400" />
+                  <span>Homepage Hero Sliding Images</span>
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Manage the rotating background slideshow on the website homepage. Upload custom photos via Cloudinary or enter image URLs.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleResetSlides}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#141f36] hover:bg-[#1a2948] text-gray-300 border border-gray-700 transition"
+                  title="Restore original 5 curated slides"
+                >
+                  Reset Defaults
+                </button>
+                <button
+                  onClick={openCreateSlideModal}
+                  className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-xl shadow transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add New Slide</span>
+                </button>
+              </div>
+            </div>
+
+            {loadingSlides ? (
+              <div className="py-16 text-center text-gray-500">Loading hero slides...</div>
+            ) : heroSlidesList.length === 0 ? (
+              <div className="bg-[#0b1220] p-12 text-center rounded-2xl border border-gray-800 space-y-3">
+                <ImageIcon className="w-10 h-10 text-gray-600 mx-auto" />
+                <h4 className="font-bold text-white text-base">No Hero Slides Added Yet</h4>
+                <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                  Click "+ Add New Slide" or "Reset Defaults" to populate the homepage slideshow.
+                </p>
+                <button
+                  onClick={handleResetSlides}
+                  className="bg-gold-500 text-black text-xs font-bold px-4 py-2 rounded-xl"
+                >
+                  Load Default Slides
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {heroSlidesList.map((slide, index) => (
+                  <div
+                    key={slide.id}
+                    className="bg-[#0d1627] rounded-2xl border border-gray-800 overflow-hidden flex flex-col justify-between shadow-md hover:border-gold-500/40 transition group"
+                  >
+                    <div>
+                      {/* Image Preview with Overlay */}
+                      <div className="relative h-48 w-full bg-gray-900 overflow-hidden">
+                        <Image
+                          src={slide.image}
+                          alt={slide.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+
+                        {/* Order & Active badges */}
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                          <span className="bg-black/80 backdrop-blur-md text-gold-400 font-mono text-xs px-2.5 py-1 rounded-lg border border-gold-400/40 font-bold">
+                            #{index + 1}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              slide.isActive
+                                ? "bg-emerald-950/80 text-emerald-300 border border-emerald-700/60"
+                                : "bg-gray-900/80 text-gray-400 border border-gray-700"
+                            }`}
+                          >
+                            {slide.isActive ? "Active" : "Hidden"}
+                          </span>
+                        </div>
+
+                        {/* Slide Caption inside preview */}
+                        <div className="absolute bottom-3 left-3 right-3 text-white">
+                          <span className="text-[10px] uppercase font-bold text-gold-300 tracking-wider block truncate">
+                            {slide.tag}
+                          </span>
+                          <h4 className="text-xs sm:text-sm font-serif font-bold text-white line-clamp-2 leading-snug mt-0.5">
+                            {slide.title}
+                          </h4>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Controls */}
+                    <div className="p-3.5 bg-[#0b1220] border-t border-gray-800/80 flex items-center justify-between gap-2">
+                      {/* Order Controls */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleMoveSlide(index, "UP")}
+                          disabled={index === 0}
+                          title="Move Slide Up"
+                          className="p-1.5 rounded-lg bg-[#141f36] hover:bg-[#1a2948] text-gray-300 disabled:opacity-30 disabled:hover:bg-[#141f36] transition"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleMoveSlide(index, "DOWN")}
+                          disabled={index === heroSlidesList.length - 1}
+                          title="Move Slide Down"
+                          className="p-1.5 rounded-lg bg-[#141f36] hover:bg-[#1a2948] text-gray-300 disabled:opacity-30 disabled:hover:bg-[#141f36] transition"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Edit & Delete */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditSlideModal(slide)}
+                          className="flex items-center gap-1 bg-[#141f36] hover:bg-gold-500 hover:text-black text-gray-300 text-xs px-2.5 py-1.5 rounded-lg border border-gray-700 transition"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSlide(slide)}
+                          className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded-lg transition"
+                          title="Delete slide"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 5: ADMIN USERS MANAGER */}
+        {activeTab === "ADMIN_USERS" && (
+          <div className="space-y-4">
+            <div className="bg-[#0b1220] p-4 rounded-2xl border border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-gold-400" />
+                  <span>Admin & Staff Account Security</span>
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Manage login usernames, secure passwords, and access privileges for hotel managers and reception staff.
+                </p>
+              </div>
+
+              <button
+                onClick={openCreateUserModal}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-xl shadow transition"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ Add New Admin User</span>
+              </button>
+            </div>
+
+            {loadingUsers ? (
+              <div className="py-16 text-center text-gray-500">Loading admin accounts...</div>
+            ) : adminUsers.length === 0 ? (
+              <div className="bg-[#0b1220] p-12 text-center rounded-2xl border border-gray-800 space-y-3">
+                <Users className="w-10 h-10 text-gray-600 mx-auto" />
+                <h4 className="font-bold text-white text-base">No Users Found</h4>
+              </div>
+            ) : (
+              <div className="bg-[#0b1220] rounded-2xl border border-gray-800 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#0d1627] text-gray-400 uppercase tracking-wider font-semibold border-b border-gray-800">
+                      <tr>
+                        <th className="py-3 px-4">Username</th>
+                        <th className="py-3 px-4">Full Name</th>
+                        <th className="py-3 px-4">Role</th>
+                        <th className="py-3 px-4">Created Date</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/80">
+                      {adminUsers.map((user) => {
+                        const isSelf = currentUser?.id === user.id;
+                        return (
+                          <tr key={user.id} className="hover:bg-[#121c31] transition">
+                            <td className="py-3.5 px-4 font-mono font-bold text-gold-400 flex items-center gap-2">
+                              <User className="w-3.5 h-3.5 text-gray-400" />
+                              <span>{user.username}</span>
+                              {isSelf && (
+                                <span className="bg-gold-500/20 text-gold-300 font-sans text-[10px] px-2 py-0.5 rounded-full border border-gold-500/30">
+                                  You
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-white font-medium">{user.name}</td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  user.role === "SUPER_ADMIN"
+                                    ? "bg-gold-500/20 text-gold-300 border border-gold-500/40"
+                                    : user.role === "ADMIN"
+                                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+                                    : "bg-gray-800 text-gray-300 border border-gray-700"
+                                }`}
+                              >
+                                {user.role === "SUPER_ADMIN"
+                                  ? "Super Admin"
+                                  : user.role === "ADMIN"
+                                  ? "Administrator"
+                                  : "Front Desk Staff"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-gray-400">
+                              {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => openChangePasswordModal(user)}
+                                  className="flex items-center gap-1 bg-[#141f36] hover:bg-gold-500 hover:text-black text-gray-300 text-xs px-2.5 py-1.5 rounded-lg border border-gray-700 transition"
+                                  title="Change password"
+                                >
+                                  <Key className="w-3 h-3" />
+                                  <span>Change Password</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(user)}
+                                  disabled={isSelf || adminUsers.length <= 1}
+                                  className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded-lg transition disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                                  title={
+                                    isSelf
+                                      ? "Cannot delete your own active account"
+                                      : adminUsers.length <= 1
+                                      ? "Cannot delete last remaining admin"
+                                      : "Delete user"
+                                  }
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -1631,6 +2421,404 @@ export default function AdminDashboardPage() {
                       </span>
                     </button>
                   </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* MODAL: CREATE / EDIT HERO SLIDE */}
+        {slideModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl sm:rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800 bg-[#0b1220]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-white leading-snug">
+                      {slideModalMode === "CREATE" ? "Add Hero Slide" : "Edit Hero Slide"}
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Slides are displayed in Ken Burns animation on the public homepage.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSlideModalOpen(false)}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSlideFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+                {slideFormError && (
+                  <div className="p-3 bg-red-950/60 border border-red-800 rounded-xl text-red-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span>{slideFormError}</span>
+                  </div>
+                )}
+
+                {/* Image Upload Area */}
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    Hero Slide Image *
+                  </label>
+
+                  {/* Image Preview if available */}
+                  {slideForm.image && (
+                    <div className="relative h-44 w-full rounded-xl overflow-hidden mb-3 border border-gray-700 bg-gray-900">
+                      <Image
+                        src={slideForm.image}
+                        alt="Preview"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-2 left-3 right-3 text-white text-xs truncate">
+                        <span className="text-[10px] text-gold-400 font-semibold uppercase block">
+                          Current Preview
+                        </span>
+                        <span className="font-bold">{slideForm.title || "No Title Yet"}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cloudinary Drag & Drop Uploader */}
+                  <label className="border-2 border-dashed border-gray-700 hover:border-gold-500/80 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition bg-[#141f36]/50 group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSlideImageUpload}
+                      disabled={uploadingSlideImage}
+                      className="hidden"
+                    />
+                    <UploadCloud className="w-7 h-7 text-gold-400 mb-1 group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold text-white text-xs">
+                      {uploadingSlideImage ? "Uploading to Cloudinary..." : "Click or drag to upload slide photo"}
+                    </span>
+                    <span className="text-[11px] text-gray-400 mt-0.5">
+                      JPG, PNG, WebP up to 10MB (Stored on Cloudinary CDN)
+                    </span>
+                  </label>
+
+                  {uploadSlideError && (
+                    <p className="text-red-400 text-[11px] mt-1">{uploadSlideError}</p>
+                  )}
+
+                  {/* Or Manual URL Input */}
+                  <div className="mt-2.5">
+                    <label className="block text-gray-500 text-[10px] uppercase font-bold mb-1">
+                      Or direct Image URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={slideForm.image || ""}
+                      onChange={(e) => setSlideForm((prev) => ({ ...prev, image: e.target.value }))}
+                      className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Tag Badge */}
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    Top Sub-heading / Tag *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Airport Transit Hotel & Luxury Facade"
+                    value={slideForm.tag || ""}
+                    onChange={(e) => setSlideForm((prev) => ({ ...prev, tag: e.target.value }))}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+
+                {/* Headline Title */}
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    Main Headline Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Your Peaceful Haven Just 5 Minutes from Dhaka Airport"
+                    value={slideForm.title || ""}
+                    onChange={(e) => setSlideForm((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+
+                {/* Active Checkbox */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="slide-active"
+                    checked={slideForm.isActive ?? true}
+                    onChange={(e) => setSlideForm((prev) => ({ ...prev, isActive: e.target.checked }))}
+                    className="w-4 h-4 rounded text-gold-500 focus:ring-0 bg-gray-900 border-gray-700"
+                  />
+                  <label htmlFor="slide-active" className="text-gray-300 font-medium cursor-pointer">
+                    Display this slide in the active homepage slider
+                  </label>
+                </div>
+
+                <div className="pt-4 border-t border-gray-800 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSlideModalOpen(false)}
+                    className="px-4 py-2 text-xs text-gray-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={slideSubmitting || uploadingSlideImage}
+                    className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-5 py-2 rounded-xl transition shadow disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{slideSubmitting ? "Saving..." : "Save Slide"}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: CREATE / CHANGE PASSWORD ADMIN USER */}
+        {userModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl max-w-md w-full text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800 bg-[#0b1220]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold">
+                    {userModalMode === "CREATE" ? <UserPlus className="w-4 h-4" /> : <Key className="w-4 h-4" />}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-white leading-snug">
+                      {userModalMode === "CREATE" ? "Add New Admin User" : `Change Password: ${userForm.username}`}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUserModalOpen(false)}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUserFormSubmit} className="p-6 space-y-4 text-xs">
+                {userFormError && (
+                  <div className="p-3 bg-red-950/60 border border-red-800 rounded-xl text-red-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span>{userFormError}</span>
+                  </div>
+                )}
+
+                {userModalMode === "CREATE" && (
+                  <>
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Username * (login name)
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. manager_rahim"
+                        value={userForm.username}
+                        onChange={(e) =>
+                          setUserForm((prev) => ({
+                            ...prev,
+                            username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ""),
+                          }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Staff / Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Md. Rahim Khan"
+                        value={userForm.name}
+                        onChange={(e) => setUserForm((prev) => ({ ...prev, name: e.target.value }))}
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                        Role Privileges *
+                      </label>
+                      <select
+                        value={userForm.role}
+                        onChange={(e) =>
+                          setUserForm((prev) => ({
+                            ...prev,
+                            role: e.target.value as "SUPER_ADMIN" | "ADMIN" | "STAFF",
+                          }))
+                        }
+                        className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500"
+                      >
+                        <option value="ADMIN">Administrator (Standard Manager)</option>
+                        <option value="STAFF">Front Desk Staff</option>
+                        <option value="SUPER_ADMIN">Super Administrator (Full Privileges)</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    {userModalMode === "CREATE" ? "Account Password *" : "New Password *"} (min. 6 characters)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter password"
+                    value={userForm.password}
+                    onChange={(e) => setUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    Confirm Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Repeat password"
+                    value={userForm.confirmPassword}
+                    onChange={(e) => setUserForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-gray-800 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUserModalOpen(false)}
+                    className="px-4 py-2 text-xs text-gray-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={userSubmitting}
+                    className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-5 py-2 rounded-xl transition shadow disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>
+                      {userSubmitting
+                        ? "Saving..."
+                        : userModalMode === "CREATE"
+                        ? "Create User"
+                        : "Update Password"}
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: SELF PASSWORD CHANGE (HEADER TRIGGER) */}
+        {selfPasswordModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl max-w-md w-full text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800 bg-[#0b1220]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold">
+                    <Key className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-serif font-bold text-white leading-snug">
+                      Change My Password
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Logged in as: <strong>{currentUser?.username}</strong>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelfPasswordModalOpen(false)}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSelfPasswordSubmit} className="p-6 space-y-4 text-xs">
+                {selfPasswordError && (
+                  <div className="p-3 bg-red-950/60 border border-red-800 rounded-xl text-red-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span>{selfPasswordError}</span>
+                  </div>
+                )}
+                {selfPasswordSuccess && (
+                  <div className="p-3 bg-emerald-950/60 border border-emerald-800 rounded-xl text-emerald-300 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{selfPasswordSuccess}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    New Password * (min. 6 characters)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter new password"
+                    value={selfNewPassword}
+                    onChange={(e) => setSelfNewPassword(e.target.value)}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 uppercase font-bold mb-1.5 text-[11px]">
+                    Confirm New Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Repeat new password"
+                    value={selfConfirmPassword}
+                    onChange={(e) => setSelfConfirmPassword(e.target.value)}
+                    className="w-full bg-[#141f36] border border-gray-700 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-gold-500 font-mono"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-gray-800 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelfPasswordModalOpen(false)}
+                    className="px-4 py-2 text-xs text-gray-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={selfPasswordSubmitting}
+                    className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-5 py-2 rounded-xl transition shadow disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{selfPasswordSubmitting ? "Updating..." : "Update Password"}</span>
+                  </button>
                 </div>
               </form>
             </div>

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "admin-root-1",
+    "username": "admin",
+    "passwordHash": "a02bfcd4076d6a06417c5a7cb512358666aadb7cd21aa273621dde4387d9acf93de38ab57da30d620c941dceffb95760212d499580bcae697fc4086b5d258053",
+    "salt": "2dced69740b24828ad7d4cdf64998e57",
+    "name": "Front Desk Administrator",
+    "role": "SUPER_ADMIN",
+    "createdAt": "2026-11-20T00:00:00.000Z",
+    "updatedAt": "2026-11-20T00:00:00.000Z"
+  }
+]
