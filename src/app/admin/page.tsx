@@ -146,6 +146,38 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
 
+  // New Booking & Reservation Management State
+  const [newBookingModalOpen, setNewBookingModalOpen] = useState(false);
+  const [newBookingSubmitting, setNewBookingSubmitting] = useState(false);
+  const [newBookingError, setNewBookingError] = useState("");
+  const [editAllottedRoom, setEditAllottedRoom] = useState("");
+  const [updatingAllottedRoom, setUpdatingAllottedRoom] = useState(false);
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
+  const [newBookingForm, setNewBookingForm] = useState({
+    roomTypeId: "",
+    guestName: "",
+    guestPhone: "",
+    guestEmail: "",
+    guestNidPassport: "",
+    permanentAddress: "",
+    occupation: "",
+    nationality: "Bangladeshi",
+    fatherOrHusbandName: "",
+    purposeOfTravel: "",
+    allottedRoom: "",
+    checkIn: "",
+    checkOut: "",
+    adults: 2,
+    children: 0,
+    extraBed: false,
+    breakfast: false,
+    paymentMethod: "PAY_AT_HOTEL",
+    paymentStatus: "PENDING",
+    status: "CONFIRMED",
+    specialRequests: "",
+    customTotalAmount: "",
+  });
+
   // Admin Users State
   const [adminUsers, setAdminUsers] = useState<SafeAdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -331,9 +363,199 @@ export default function AdminDashboardPage() {
             item.id === id ? { ...item, paymentStatus: newPayStatus, paidAmount } : item
           )
         );
+        if (selectedBooking && selectedBooking.id === id) {
+          setSelectedBooking({ ...selectedBooking, paymentStatus: newPayStatus, paidAmount });
+        }
       }
     } catch (err) {
       console.error("Payment status update error:", err);
+    }
+  };
+
+  // Open Booking Details Modal
+  const handleOpenBookingDetails = (b: AdminBooking) => {
+    setSelectedBooking(b);
+    setEditAllottedRoom(b.allottedRoom || "");
+  };
+
+  // Save Allotted Room for a Booking
+  const handleSaveAllottedRoom = async (id: string, roomNum: string) => {
+    setUpdatingAllottedRoom(true);
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allottedRoom: roomNum.trim() || null }),
+      });
+      if (res.ok) {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, allottedRoom: roomNum.trim() || null } : b))
+        );
+        if (selectedBooking && selectedBooking.id === id) {
+          setSelectedBooking((prev) => (prev ? { ...prev, allottedRoom: roomNum.trim() || null } : null));
+        }
+      }
+    } catch (err) {
+      console.error("Save allotted room error:", err);
+    } finally {
+      setUpdatingAllottedRoom(false);
+    }
+  };
+
+  // Delete Booking
+  const handleDeleteBooking = async (id: string, code: string, guestName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete reservation ${code} (${guestName})? This cannot be undone.`)) {
+      return;
+    }
+    setDeletingBookingId(id);
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setBookings((prev) => prev.filter((b) => b.id !== id));
+        if (selectedBooking && selectedBooking.id === id) {
+          setSelectedBooking(null);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete reservation.");
+      }
+    } catch (err) {
+      console.error("Delete booking error:", err);
+      alert("Failed to delete reservation.");
+    } finally {
+      setDeletingBookingId(null);
+    }
+  };
+
+  // Open New Reservation Modal
+  const handleOpenNewBookingModal = () => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    const checkInStr = today.toISOString().split("T")[0];
+    const checkOutStr = tomorrow.toISOString().split("T")[0];
+
+    setNewBookingForm({
+      roomTypeId: rooms[0]?.id || "",
+      guestName: "",
+      guestPhone: "",
+      guestEmail: "",
+      guestNidPassport: "",
+      permanentAddress: "",
+      occupation: "",
+      nationality: "Bangladeshi",
+      fatherOrHusbandName: "",
+      purposeOfTravel: "",
+      allottedRoom: "",
+      checkIn: checkInStr,
+      checkOut: checkOutStr,
+      adults: 2,
+      children: 0,
+      extraBed: false,
+      breakfast: false,
+      paymentMethod: "PAY_AT_HOTEL",
+      paymentStatus: "PENDING",
+      status: "CONFIRMED",
+      specialRequests: "",
+      customTotalAmount: "",
+    });
+    setNewBookingError("");
+    setNewBookingModalOpen(true);
+  };
+
+  // Submit New Reservation
+  const handleCreateBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBookingForm.roomTypeId) {
+      setNewBookingError("Please select a room category.");
+      return;
+    }
+    if (!newBookingForm.guestName.trim()) {
+      setNewBookingError("Please enter the guest full name.");
+      return;
+    }
+    if (!newBookingForm.guestPhone.trim()) {
+      setNewBookingError("Please enter the guest phone number.");
+      return;
+    }
+    if (!newBookingForm.checkIn || !newBookingForm.checkOut) {
+      setNewBookingError("Please specify both check-in and check-out dates.");
+      return;
+    }
+
+    const cIn = new Date(newBookingForm.checkIn);
+    const cOut = new Date(newBookingForm.checkOut);
+    if (cOut <= cIn) {
+      setNewBookingError("Check-out date must be after check-in date.");
+      return;
+    }
+
+    setNewBookingSubmitting(true);
+    setNewBookingError("");
+
+    try {
+      const diffTime = Math.max(0, cOut.getTime() - cIn.getTime());
+      const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      const selectedRoom = rooms.find((r) => r.id === newBookingForm.roomTypeId);
+      const basePrice = selectedRoom ? selectedRoom.basePrice : 0;
+      const extraBedCharge = newBookingForm.extraBed ? 500 * nights : 0;
+      const breakfastCharge = newBookingForm.breakfast
+        ? 450 * (Number(newBookingForm.adults) + Number(newBookingForm.children)) * nights
+        : 0;
+      const calculatedTotal = (basePrice * nights) + extraBedCharge + breakfastCharge;
+
+      const finalTotal = newBookingForm.customTotalAmount !== ""
+        ? Number(newBookingForm.customTotalAmount)
+        : calculatedTotal;
+      const finalPaid = newBookingForm.paymentStatus === "PAID" ? finalTotal : 0;
+
+      const payload = {
+        roomTypeId: newBookingForm.roomTypeId,
+        guestName: newBookingForm.guestName.trim(),
+        guestPhone: newBookingForm.guestPhone.trim(),
+        guestEmail: newBookingForm.guestEmail.trim() || undefined,
+        guestNidPassport: newBookingForm.guestNidPassport.trim() || undefined,
+        permanentAddress: newBookingForm.permanentAddress.trim() || undefined,
+        occupation: newBookingForm.occupation.trim() || undefined,
+        nationality: newBookingForm.nationality.trim() || "Bangladeshi",
+        fatherOrHusbandName: newBookingForm.fatherOrHusbandName.trim() || undefined,
+        purposeOfTravel: newBookingForm.purposeOfTravel.trim() || undefined,
+        allottedRoom: newBookingForm.allottedRoom.trim() || undefined,
+        checkIn: newBookingForm.checkIn,
+        checkOut: newBookingForm.checkOut,
+        nights,
+        adults: Number(newBookingForm.adults),
+        children: Number(newBookingForm.children),
+        extraBed: Boolean(newBookingForm.extraBed),
+        breakfast: Boolean(newBookingForm.breakfast),
+        totalAmount: finalTotal,
+        paidAmount: finalPaid,
+        paymentMethod: newBookingForm.paymentMethod,
+        paymentStatus: newBookingForm.paymentStatus,
+        status: newBookingForm.status,
+        specialRequests: newBookingForm.specialRequests.trim() || undefined,
+      };
+
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create reservation.");
+      }
+
+      setBookings((prev) => [data, ...prev]);
+      setNewBookingModalOpen(false);
+    } catch (err: any) {
+      setNewBookingError(err.message || "Failed to create reservation.");
+    } finally {
+      setNewBookingSubmitting(false);
     }
   };
 
@@ -1058,22 +1280,6 @@ export default function AdminDashboardPage() {
           )}
 
           <button
-            onClick={openCreateRoomModal}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-3.5 py-2 rounded-xl shadow transition"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Add Room</span>
-          </button>
-
-          <button
-            onClick={openCreateSlideModal}
-            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gold-400 text-xs px-3.5 py-2 rounded-xl border border-gold-500/30 transition"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>+ Add Hero Slide</span>
-          </button>
-
-          <button
             onClick={fetchDashboardData}
             className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1a2948] text-gray-300 text-xs px-3 py-2 rounded-xl border border-gray-700 transition"
             title="Refresh dashboard records"
@@ -1159,60 +1365,44 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-gray-800 pb-3">
-          <button
-            onClick={() => setActiveTab("BOOKINGS")}
-            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
-              activeTab === "BOOKINGS"
-                ? "bg-gold-500 text-black shadow-md"
-                : "bg-[#111a2c] text-gray-400 hover:text-white"
-            }`}
-          >
-            Reservations ({bookings.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("ROOMS")}
-            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
-              activeTab === "ROOMS"
-                ? "bg-gold-500 text-black shadow-md"
-                : "bg-[#111a2c] text-gray-400 hover:text-white"
-            }`}
-          >
-            Rooms & Pricing ({rooms.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("HERO_SLIDES")}
-            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 ${
-              activeTab === "HERO_SLIDES"
-                ? "bg-gold-500 text-black shadow-md"
-                : "bg-[#111a2c] text-gray-400 hover:text-white"
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Hero Sliding Images ({heroSlidesList.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("ADMIN_USERS")}
-            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5 ${
-              activeTab === "ADMIN_USERS"
-                ? "bg-gold-500 text-black shadow-md"
-                : "bg-[#111a2c] text-gray-400 hover:text-white"
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Admin Users ({adminUsers.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("INQUIRIES")}
-            className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
-              activeTab === "INQUIRIES"
-                ? "bg-gold-500 text-black shadow-md"
-                : "bg-[#111a2c] text-gray-400 hover:text-white"
-            }`}
-          >
-            Inquiries ({inquiries.length})
-          </button>
+        {/* Navigation Tabs Bar */}
+        <div className="bg-[#0b1220] border border-gray-800 p-2 rounded-2xl shadow-lg">
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { id: "BOOKINGS" as const, label: "Reservations", count: bookings.length, icon: Calendar },
+              { id: "ROOMS" as const, label: "Rooms & Pricing", count: rooms.length, icon: Bed },
+              { id: "HERO_SLIDES" as const, label: "Hero Sliding Images", count: heroSlidesList.length, icon: Sparkles },
+              { id: "ADMIN_USERS" as const, label: "Admin Users", count: adminUsers.length, icon: Shield },
+              { id: "INQUIRIES" as const, label: "Inquiries", count: inquiries.length, icon: MessageSquare },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
+                    isActive
+                      ? "bg-gradient-to-r from-gold-500 to-gold-400 text-black border-gold-300 shadow-[0_2px_12px_rgba(212,175,55,0.25)] scale-[1.02]"
+                      : "bg-[#111a2d]/80 hover:bg-[#16233b] text-gray-300 hover:text-white border-gray-800/80 hover:border-gray-700"
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? "text-black" : "text-gold-400"}`} />
+                  <span>{tab.label}</span>
+                  <span
+                    className={`ml-0.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold transition ${
+                      isActive
+                        ? "bg-black text-gold-400 border border-black/30"
+                        : "bg-[#192640] text-gold-400/90 border border-gray-700/60"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* TAB 1: BOOKINGS LIST */}
@@ -1231,20 +1421,31 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
-                {["ALL", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition ${
-                      statusFilter === st
-                        ? "bg-gold-400 text-black font-bold"
-                        : "bg-[#141f36] text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {st.replace("_", " ")}
-                  </button>
-                ))}
+              <div className="flex flex-wrap items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {["ALL", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"].map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setStatusFilter(st)}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition ${
+                        statusFilter === st
+                          ? "bg-gold-400 text-black font-bold"
+                          : "bg-[#141f36] text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {st.replace("_", " ")}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleOpenNewBookingModal}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs shadow-md transition whitespace-nowrap ml-auto md:ml-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>New Reservation</span>
+                </button>
               </div>
             </div>
 
@@ -1261,14 +1462,34 @@ export default function AdminDashboardPage() {
                       <th className="px-5 py-3.5">Amount / Method</th>
                       <th className="px-5 py-3.5">Payment</th>
                       <th className="px-5 py-3.5">Status Action</th>
-                      <th className="px-5 py-3.5 text-right">Details</th>
+                      <th className="px-5 py-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/80">
                     {filteredBookings.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-12 text-center text-gray-500">
-                          No reservation records found.
+                        <td colSpan={8} className="py-14 text-center text-gray-400">
+                          <div className="max-w-sm mx-auto space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-gold-500/10 text-gold-400 flex items-center justify-center mx-auto">
+                              <Calendar className="w-6 h-6" />
+                            </div>
+                            <div className="font-semibold text-white text-sm">No Reservations Found</div>
+                            <p className="text-xs text-gray-400 leading-relaxed">
+                              {searchQuery || statusFilter !== "ALL"
+                                ? "No bookings match your filter criteria. Try adjusting the search term or status."
+                                : "There are currently no active bookings. Create a new reservation for walk-in or phone guests."}
+                            </p>
+                            <div>
+                              <button
+                                type="button"
+                                onClick={handleOpenNewBookingModal}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-black font-bold text-xs shadow transition mt-1"
+                              >
+                                <Plus className="w-4 h-4" />
+                                <span>Create New Reservation</span>
+                              </button>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     ) : (
@@ -1276,10 +1497,10 @@ export default function AdminDashboardPage() {
                         <tr key={b.id} className="hover:bg-[#111a2d]/60 transition">
                           <td className="px-5 py-4 font-mono font-bold text-gold-400 whitespace-nowrap">
                             <button
-                              onClick={() => setSelectedBooking(b)}
-                              className="hover:underline text-left"
+                              onClick={() => handleOpenBookingDetails(b)}
+                              className="hover:underline text-left inline-flex items-center gap-1.5"
                             >
-                              {b.bookingCode}
+                              <span>{b.bookingCode}</span>
                             </button>
                           </td>
 
@@ -1292,7 +1513,14 @@ export default function AdminDashboardPage() {
                           </td>
 
                           <td className="px-5 py-4">
-                            <span className="text-white font-medium">{b.roomType?.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-white font-medium">{b.roomType?.name}</span>
+                              {b.allottedRoom && (
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-300 border border-emerald-700/60 font-semibold">
+                                  #{b.allottedRoom}
+                                </span>
+                              )}
+                            </div>
                             <span className="block text-[11px] text-gray-400">
                               {b.roomType?.isAc ? "AC" : "Non-AC"} • {b.roomType?.category}
                             </span>
@@ -1345,14 +1573,24 @@ export default function AdminDashboardPage() {
                           </td>
 
                           <td className="px-5 py-4 text-right whitespace-nowrap">
-                            <button
-                              onClick={() => setSelectedBooking(b)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141f36] hover:bg-gold-500/20 text-gray-300 hover:text-gold-300 border border-gray-700/80 transition text-xs font-semibold"
-                              title="View Guest Details"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-gold-400" />
-                              <span>View</span>
-                            </button>
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              <button
+                                onClick={() => handleOpenBookingDetails(b)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141f36] hover:bg-gold-500/20 text-gray-300 hover:text-gold-300 border border-gray-700/80 transition text-xs font-semibold"
+                                title="View Guest Details"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-gold-400" />
+                                <span>View</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBooking(b.id, b.bookingCode, b.guestName)}
+                                disabled={deletingBookingId === b.id}
+                                className="p-1.5 rounded-lg bg-red-950/30 hover:bg-red-900/60 text-red-400 hover:text-red-200 border border-red-800/40 transition disabled:opacity-50"
+                                title="Delete Reservation"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -1383,7 +1621,7 @@ export default function AdminDashboardPage() {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs shadow-md transition self-start sm:self-auto"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Add New Room Category</span>
+                <span>Add New Room Category</span>
               </button>
             </div>
 
@@ -1691,7 +1929,7 @@ export default function AdminDashboardPage() {
                   className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-xl shadow transition"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add New Slide</span>
+                  <span>Add New Slide</span>
                 </button>
               </div>
             </div>
@@ -1824,7 +2062,7 @@ export default function AdminDashboardPage() {
                 className="flex items-center gap-1.5 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold text-xs px-4 py-2 rounded-xl shadow transition"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                <span>+ Add New Admin User</span>
+                <span>Add New Admin User</span>
               </button>
             </div>
 
@@ -1942,7 +2180,8 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="space-y-3 text-xs">
-                <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800 space-y-1.5">
+                {/* Guest Profile Card */}
+                <div className="bg-[#121c31] p-3.5 rounded-xl border border-gray-800 space-y-1.5">
                   <div className="font-bold text-sm text-white">{selectedBooking.guestName}</div>
                   <div className="text-gray-300">📞 Phone: <span className="font-semibold text-white">{selectedBooking.guestPhone}</span></div>
                   {selectedBooking.guestEmail && (
@@ -1973,20 +2212,81 @@ export default function AdminDashboardPage() {
                       ✈️ Purpose: {selectedBooking.purposeOfTravel}
                     </div>
                   )}
-                  {selectedBooking.allottedRoom && (
-                    <div className="text-emerald-400 font-semibold font-mono">
-                      🚪 Allotted Room: {selectedBooking.allottedRoom}
-                    </div>
-                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 bg-[#121c31] p-3 rounded-xl border border-gray-800">
+                {/* Allotted Room Assignment */}
+                <div className="bg-[#121c31] p-3.5 rounded-xl border border-gray-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 font-semibold flex items-center gap-1.5">
+                      <Bed className="w-3.5 h-3.5 text-gold-400" />
+                      <span>Room Number Allotment:</span>
+                    </span>
+                    {selectedBooking.allottedRoom && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 font-bold">
+                        Room #{selectedBooking.allottedRoom}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter room number (e.g. 204, 305)"
+                      value={editAllottedRoom}
+                      onChange={(e) => setEditAllottedRoom(e.target.value)}
+                      className="flex-1 bg-[#18243e] border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 font-mono"
+                    />
+                    <button
+                      type="button"
+                      disabled={updatingAllottedRoom}
+                      onClick={() => handleSaveAllottedRoom(selectedBooking.id, editAllottedRoom)}
+                      className="px-3.5 py-1.5 bg-gold-500 hover:bg-gold-400 text-black font-bold text-xs rounded-lg transition disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {updatingAllottedRoom ? "Saving..." : "Save Room"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Status Adjustments */}
+                <div className="grid grid-cols-2 gap-3 bg-[#121c31] p-3.5 rounded-xl border border-gray-800">
                   <div>
-                    <span className="text-gray-500 block">Room</span>
+                    <label className="text-gray-400 text-[11px] block mb-1">Reservation Status</label>
+                    <select
+                      value={selectedBooking.status}
+                      onChange={(e) => handleUpdateStatus(selectedBooking.id, e.target.value)}
+                      className="w-full bg-[#18243e] border border-gray-700 text-xs rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-gold-500"
+                    >
+                      <option value="CONFIRMED">CONFIRMED</option>
+                      <option value="CHECKED_IN">CHECKED_IN</option>
+                      <option value="CHECKED_OUT">CHECKED_OUT</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-[11px] block mb-1">Payment Status</label>
+                    <select
+                      value={selectedBooking.paymentStatus}
+                      onChange={(e) => handleUpdatePaymentStatus(selectedBooking.id, e.target.value)}
+                      className={`w-full text-xs font-bold rounded-lg px-2.5 py-1.5 border focus:outline-none ${
+                        selectedBooking.paymentStatus === "PAID"
+                          ? "bg-emerald-950/70 border-emerald-600 text-emerald-300"
+                          : "bg-amber-950/70 border-amber-600 text-amber-300"
+                      }`}
+                    >
+                      <option value="PAID">PAID</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="REFUNDED">REFUNDED</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Dates & Room Info */}
+                <div className="grid grid-cols-2 gap-3 bg-[#121c31] p-3.5 rounded-xl border border-gray-800">
+                  <div>
+                    <span className="text-gray-500 block">Room Category</span>
                     <span className="font-medium text-white">{selectedBooking.roomType?.name}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Guests</span>
+                    <span className="text-gray-500 block">Occupancy</span>
                     <span className="font-medium text-white">
                       {selectedBooking.adults} Adults, {selectedBooking.children} Children
                     </span>
@@ -2005,7 +2305,12 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800 space-y-1.5">
+                {/* Billing Summary */}
+                <div className="bg-[#121c31] p-3.5 rounded-xl border border-gray-800 space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Payment Method:</span>
+                    <span className="font-mono font-semibold text-white uppercase">{selectedBooking.paymentMethod}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Extra Bed Setup:</span>
                     <span className="font-semibold text-white">
@@ -2025,7 +2330,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {selectedBooking.specialRequests && (
-                  <div className="bg-[#121c31] p-3 rounded-xl border border-gray-800">
+                  <div className="bg-[#121c31] p-3.5 rounded-xl border border-gray-800">
                     <span className="text-gray-400 font-semibold block mb-1">
                       Guest Notes & Requests:
                     </span>
@@ -2034,7 +2339,16 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              <div className="flex justify-end items-center pt-3 border-t border-gray-800">
+              {/* Modal Footer */}
+              <div className="flex justify-between items-center pt-3 border-t border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteBooking(selectedBooking.id, selectedBooking.bookingCode, selectedBooking.guestName)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-white border border-red-800/60 transition text-xs font-semibold"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedBooking(null)}
@@ -2043,6 +2357,375 @@ export default function AdminDashboardPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: CREATE NEW RESERVATION */}
+        {newBookingModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+            <div className="bg-[#0e1627] border border-gold-500/40 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              {/* Header */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800 shrink-0 bg-[#0b1220]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white leading-snug">
+                      New Reservation / Walk-In
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      Create guest booking, assign room number, and record payment
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNewBookingModalOpen(false)}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={handleCreateBookingSubmit} className="flex flex-col flex-1 overflow-hidden">
+                <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+                  {newBookingError && (
+                    <div className="p-3 rounded-xl bg-red-950/60 border border-red-800/80 text-red-300 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                      <span>{newBookingError}</span>
+                    </div>
+                  )}
+
+                  {/* Section 1: Guest Information */}
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span>Guest Contact & Identity</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-gray-300 block mb-1 font-semibold">
+                          Guest Full Name <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Tanvir Ahmed"
+                          value={newBookingForm.guestName}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, guestName: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-300 block mb-1 font-semibold">
+                          Phone Number <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="e.g. +880 1711-000000"
+                          value={newBookingForm.guestPhone}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, guestPhone: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          placeholder="guest@example.com"
+                          value={newBookingForm.guestEmail}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, guestEmail: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">NID or Passport #</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 198547281923"
+                          value={newBookingForm.guestNidPassport}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, guestNidPassport: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 font-mono"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-gray-400 block mb-1">Permanent Address</label>
+                        <input
+                          type="text"
+                          placeholder="House/Road, Thana, District"
+                          value={newBookingForm.permanentAddress}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, permanentAddress: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Room & Dates */}
+                  <div className="space-y-3 pt-3 border-t border-gray-800">
+                    <h4 className="text-[11px] font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Bed className="w-3.5 h-3.5" />
+                      <span>Room Selection & Dates</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-gray-300 block mb-1 font-semibold">
+                          Room Category <span className="text-red-400">*</span>
+                        </label>
+                        <select
+                          required
+                          value={newBookingForm.roomTypeId}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, roomTypeId: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        >
+                          <option value="" disabled>Select room category...</option>
+                          {rooms.map((rm) => (
+                            <option key={rm.id} value={rm.id}>
+                              {rm.name} ({rm.isAc ? "AC" : "Non-AC"}) — ৳{rm.basePrice.toLocaleString()}/night
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1 font-semibold">
+                          Allotted Room Number (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 204, 301, Suite-A"
+                          value={newBookingForm.allottedRoom}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, allottedRoom: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-300 block mb-1 font-semibold">
+                          Check-In Date <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          value={newBookingForm.checkIn}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, checkIn: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-300 block mb-1 font-semibold">
+                          Check-Out Date <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          value={newBookingForm.checkOut}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, checkOut: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Adults</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={newBookingForm.adults}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, adults: Number(e.target.value) })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Children</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={newBookingForm.children}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, children: Number(e.target.value) })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Add-ons & Charges */}
+                  <div className="space-y-3 pt-3 border-t border-gray-800">
+                    <h4 className="text-[11px] font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Add-ons & Options</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="flex items-center gap-2 p-3 bg-[#131d33] border border-gray-700 rounded-xl cursor-pointer hover:border-gold-500/50 transition">
+                        <input
+                          type="checkbox"
+                          checked={newBookingForm.extraBed}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, extraBed: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded text-gold-500 focus:ring-gold-500 bg-gray-900 border-gray-700"
+                        />
+                        <div>
+                          <span className="font-semibold text-white block">Extra Bed Setup</span>
+                          <span className="text-[10px] text-gray-400">+৳500 per night</span>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 bg-[#131d33] border border-gray-700 rounded-xl cursor-pointer hover:border-gold-500/50 transition">
+                        <input
+                          type="checkbox"
+                          checked={newBookingForm.breakfast}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, breakfast: e.target.checked })
+                          }
+                          className="w-4 h-4 rounded text-gold-500 focus:ring-gold-500 bg-gray-900 border-gray-700"
+                        />
+                        <div>
+                          <span className="font-semibold text-white block">Buffet / Plated Breakfast</span>
+                          <span className="text-[10px] text-gray-400">+৳450 per guest / night</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Section 4: Payment & Status */}
+                  <div className="space-y-3 pt-3 border-t border-gray-800">
+                    <h4 className="text-[11px] font-bold text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>Payment & Operational Status</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-gray-400 block mb-1">Payment Method</label>
+                        <select
+                          value={newBookingForm.paymentMethod}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, paymentMethod: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 uppercase font-mono text-[11px]"
+                        >
+                          <option value="PAY_AT_HOTEL">Pay At Hotel</option>
+                          <option value="BKASH">bKash</option>
+                          <option value="NAGAD">Nagad</option>
+                          <option value="CARD">Credit/Debit Card</option>
+                          <option value="BANK_TRANSFER">Bank Transfer</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Payment Status</label>
+                        <select
+                          value={newBookingForm.paymentStatus}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, paymentStatus: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 font-bold text-[11px]"
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="PAID">PAID</option>
+                          <option value="REFUNDED">REFUNDED</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Reservation Status</label>
+                        <select
+                          value={newBookingForm.status}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, status: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 font-semibold text-[11px]"
+                        >
+                          <option value="CONFIRMED">CONFIRMED</option>
+                          <option value="CHECKED_IN">CHECKED_IN</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 5: Special Notes & Pricing Summary */}
+                  <div className="space-y-3 pt-3 border-t border-gray-800">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-gray-400 block mb-1">Special Requests or Staff Notes</label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. Airport shuttle request, high floor, extra pillow"
+                          value={newBookingForm.specialRequests}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, specialRequests: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-gold-500 resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-gray-400 block mb-1">Custom Total Amount (BDT)</label>
+                        <input
+                          type="number"
+                          placeholder="Auto-calculated if empty"
+                          value={newBookingForm.customTotalAmount}
+                          onChange={(e) =>
+                            setNewBookingForm({ ...newBookingForm, customTotalAmount: e.target.value })
+                          }
+                          className="w-full bg-[#131d33] border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-gold-500 font-mono"
+                        />
+                        <span className="text-[10px] text-gray-500 mt-1 block">
+                          Leave empty to use automatic calculation.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-4 px-6 bg-[#0b1220] border-t border-gray-800 flex items-center justify-end gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setNewBookingModalOpen(false)}
+                    className="px-4 py-2 text-xs text-gray-400 hover:text-white transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={newBookingSubmitting}
+                    className="bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 text-black font-bold px-5 py-2.5 rounded-xl transition shadow disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {newBookingSubmitting ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Creating Reservation...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Confirm Reservation</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

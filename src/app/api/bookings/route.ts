@@ -32,9 +32,7 @@ export async function GET() {
       },
     });
 
-    if (bookings && bookings.length > 0) {
-      return NextResponse.json(bookings);
-    }
+    return NextResponse.json(bookings);
   } catch (error) {
     console.warn("Prisma unavailable, serving fallback bookings:", error);
   }

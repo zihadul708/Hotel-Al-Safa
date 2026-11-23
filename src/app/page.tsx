@@ -60,6 +60,7 @@ export default function HomePage() {
   const [rooms, setRooms] = useState<RoomTypeData[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
+  const [showAllRooms, setShowAllRooms] = useState(false);
 
   // Dynamic Hero Moving Slides State
   const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_HERO_SLIDES);
@@ -151,6 +152,8 @@ export default function HomePage() {
           return cat === target;
         });
 
+  const displayedRooms = showAllRooms ? filteredRooms : filteredRooms.slice(0, 6);
+
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-gray-900 flex flex-col font-sans selection:bg-gold-400 selection:text-black">
       {/* Top Contact Marquee */}
@@ -163,7 +166,7 @@ export default function HomePage() {
         {/* ========================================================= */}
         {/* HERO SECTION WITH MOVING BACKGROUND IMAGES SLIDER        */}
         {/* ========================================================= */}
-        <section className="relative min-h-[680px] lg:min-h-[760px] flex items-center justify-center bg-[#070d18] text-white overflow-hidden py-16 px-4">
+        <section className="relative min-h-[660px] lg:min-h-[740px] flex items-center justify-center bg-[#070d18] text-white overflow-hidden py-10 sm:py-14 lg:py-16 px-3 sm:px-4">
           {/* Moving Background Image Slides with Ken Burns Smooth Transition */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             {slides.map((slide, index) => {
@@ -173,7 +176,7 @@ export default function HomePage() {
                   key={slide.id || index}
                   className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                     isActive
-                      ? "opacity-40 scale-105 z-10"
+                      ? "opacity-95 lg:opacity-100 scale-105 z-10"
                       : "opacity-0 scale-100 z-0 pointer-events-none"
                   }`}
                 >
@@ -189,94 +192,86 @@ export default function HomePage() {
                 </div>
               );
             })}
-            {/* Multi-layered luxury dark gradient overlay */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#070d18] via-[#070d18]/65 to-[#070d18]/50" />
-            <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#070d18]/40 via-transparent to-[#070d18]/40" />
+            {/* Elegant atmospheric overlays - keeping carousel images crystal clear while optimizing text readability */}
+            <div className="absolute inset-0 z-10 bg-black/25 pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-36 z-10 bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 inset-x-0 h-56 z-10 bg-gradient-to-t from-[#070d18] via-[#070d18]/75 to-transparent pointer-events-none" />
           </div>
 
           {/* Left / Right Carousel Arrow Controls */}
-          <div className="hidden md:flex absolute inset-y-0 left-4 right-4 z-30 items-center justify-between pointer-events-none">
+          <div className="absolute inset-y-0 left-2 sm:left-4 right-2 sm:right-4 z-30 flex items-center justify-between pointer-events-none">
             <button
               onClick={handlePrevSlide}
               aria-label="Previous Slide"
-              className="pointer-events-auto w-11 h-11 rounded-full bg-black/45 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white hover:text-gold-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl"
+              className="pointer-events-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-gold-500 text-white hover:text-black backdrop-blur-md border border-white/25 hover:border-gold-400 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-2xl group"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
             </button>
             <button
               onClick={handleNextSlide}
               aria-label="Next Slide"
-              className="pointer-events-auto w-11 h-11 rounded-full bg-black/45 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white hover:text-gold-400 flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-xl"
+              className="pointer-events-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-gold-500 text-white hover:text-black backdrop-blur-md border border-white/25 hover:border-gold-400 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-2xl group"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>
 
-          <div className="relative z-20 max-w-5xl mx-auto text-center space-y-5">
-            {/* Royal Crest Logo in Hero */}
-            <motion.div
-              initial={{ opacity: 0, y: -24, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-48 sm:w-64 h-20 sm:h-24 mx-auto drop-shadow-[0_4px_24px_rgba(212,175,55,0.45)]"
-            >
-              <Image
-                src="/logo-full.png"
-                alt="Hotel Al Safa Royal Emblem"
-                fill
-                className="object-contain"
-                priority
-              />
-            </motion.div>
+          {/* Top-Right Floating Slide Badge */}
+          <div className="absolute top-4 right-4 z-20 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-gold-400/30 text-gold-300 text-xs shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
+            <span className="font-mono text-gold-200">
+              {String(currentSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+            </span>
+            <span className="text-gray-500">|</span>
+            <span className="text-gray-200 font-medium truncate max-w-[220px]">
+              {slides[currentSlide]?.tag || "Featured Suite"}
+            </span>
+          </div>
 
-            {/* Top Quality Badge Pill & Slide Tag */}
+          <div className="relative z-20 max-w-5xl mx-auto text-center space-y-3 sm:space-y-4">
+            {/* Minimal & Elegant Hero Text: streamlined to give maximum visibility to moving banner images */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-400/15 border border-gold-400/40 text-gold-300 text-xs sm:text-sm font-medium tracking-wider uppercase backdrop-blur-md"
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-2.5 max-w-3xl mx-auto"
             >
-              <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-              <span>{slides[currentSlide]?.tag || "Airport Transit Hotel & Luxury Facade"}</span>
+              {/* Hotel Brand Pill & Live Slide Tag */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/55 border border-gold-400/40 text-gold-300 text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase backdrop-blur-md shadow-lg shadow-black/40">
+                <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-pulse" />
+                <span>{slides[currentSlide]?.tag || "Luxury Airport Transit • Dhaka"}</span>
+              </div>
+
+              {/* Main Headline with Luxury Gold & Platinum Ivory Typography */}
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold tracking-tight leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+                <span className="text-stone-100">
+                  Your Peaceful Haven Just{" "}
+                </span>
+                <span className="bg-gradient-to-r from-amber-200 via-gold-400 to-yellow-200 bg-clip-text text-transparent underline decoration-gold-400/50 decoration-wavy underline-offset-8 drop-shadow-[0_2px_14px_rgba(212,175,55,0.4)]">
+                  5 Minutes
+                </span>
+                <span className="text-stone-100">
+                  {" "}From Dhaka Airport
+                </span>
+              </h1>
+
+              {/* Short, Punchy 1-line Tagline */}
+              <p className="text-xs sm:text-sm text-amber-100/90 font-medium tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                Soundproof AC Comfort • 24/7 Front Desk • Hajj Camp 3 Mins Walk
+              </p>
             </motion.div>
 
-            {/* Main Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-tight max-w-4xl mx-auto"
-            >
-              Your Peaceful Haven Just{" "}
-              <span className="gold-text-gradient underline decoration-gold-400/30">
-                5 Minutes
-              </span>{" "}
-              From Dhaka Airport
-            </motion.h1>
-
-            {/* Sub-headline */}
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="text-sm sm:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
-            >
-              Designed for international transit travelers, Hajj & Umrah pilgrims, and visiting
-              executives. Experience soundproof AC suites, peaceful ambiance, and authentic
-              hospitality.
-            </motion.p>
-
             {/* ========================================== */}
-            {/* QUICK BOOKING BAR (Similar to D'Palace BD) */}
+            {/* QUICK BOOKING BAR                          */}
             {/* ========================================== */}
             <motion.div
-              initial={{ opacity: 0, y: 32 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.85, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="pt-4 max-w-4xl mx-auto"
+              transition={{ duration: 0.75, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="pt-1 max-w-4xl mx-auto"
             >
-              <div className="bg-[#0b1220]/95 backdrop-blur-xl border border-gold-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl text-left">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+              <div className="bg-[#0b1220]/80 backdrop-blur-xl border border-gold-500/30 rounded-2xl p-3.5 sm:p-4 shadow-2xl text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
                   {/* Check-In */}
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -344,26 +339,6 @@ export default function HomePage() {
                     </button>
                   </div>
                 </div>
-
-                {/* Quick Trust Highlights */}
-                <div className="mt-4 pt-3 border-t border-gray-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>24/7 Front Desk Reception</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Instant bKash, Nagad & DBBL Bank</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Pay at Hotel Option</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Hajj Camp 3 Mins Walk</span>
-                  </div>
-                </div>
               </div>
             </motion.div>
 
@@ -385,6 +360,194 @@ export default function HomePage() {
                 {String(currentSlide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
               </span>
             </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* ROOMS & SUITES SECTION (SCROLL ANIMATED)                  */}
+        {/* ========================================================= */}
+        <section id="rooms" className="py-20 bg-[#f8f5ee]">
+          <div className="max-w-7xl mx-auto px-4">
+            {/* Header */}
+            <FadeIn direction="up">
+              <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+                <span className="text-xs uppercase tracking-widest text-gold-600 font-bold">
+                  Luxury Accommodations
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900">
+                  Explore Our Rooms & Suites
+                </h2>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  From budget-friendly non-AC transit rooms to lavish presidential suites, every room is
+                  furnished with premium bedding, hot geysers, and sound insulation.
+                </p>
+
+                {/* Filter Tabs */}
+                <div className="flex flex-wrap justify-center gap-2 pt-4">
+                  {[
+                    { label: "All Rooms", value: "ALL" },
+                    { label: "Deluxe (AC)", value: "DELUXE" },
+                    { label: "Economy (Non-AC)", value: "ECONOMY" },
+                    { label: "Couple", value: "COUPLE" },
+                    { label: "Family", value: "FAMILY" },
+                    { label: "Single", value: "SINGLE" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.value}
+                      onClick={() => {
+                        setActiveCategory(tab.value);
+                        setShowAllRooms(false);
+                      }}
+                      className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition ${
+                        activeCategory === tab.value
+                          ? "bg-[#0b111e] text-gold-400 shadow-md"
+                          : "bg-white text-gray-600 hover:text-black border border-gray-200"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Room Cards Grid */}
+            {loadingRooms ? (
+              <div className="py-20 text-center text-gray-500 font-medium">
+                Loading rooms & suites...
+              </div>
+            ) : (
+              <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {displayedRooms.map((room) => {
+                  const mainImage = (Array.isArray(room.images) && room.images[0]) || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
+
+                  return (
+                    <StaggerItem key={room.id}>
+                      <div
+                        onClick={() => handleOpenDetails(room)}
+                        className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full transform hover:-translate-y-1.5 cursor-pointer"
+                      >
+                        {/* Image Preview Container */}
+                        <div className="relative h-60 w-full overflow-hidden bg-gray-900">
+                          <Image
+                            src={optimizeImageUrl(mainImage, 800)}
+                            alt={room.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                          {/* AC Badge */}
+                          <div className="absolute top-3 left-3">
+                            <span
+                              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow ${
+                                room.isAc
+                                  ? "bg-cyan-900/90 text-cyan-200 border border-cyan-700"
+                                  : "bg-gray-900/90 text-gray-300 border border-gray-700"
+                              }`}
+                            >
+                              {room.isAc ? "Air Conditioned" : "Non-AC Economy"}
+                            </span>
+                          </div>
+
+                          {/* Price Badge */}
+                          <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-sm text-white px-3 py-1.5 rounded-xl border border-gold-500/40">
+                            <span className="text-base font-bold text-gold-400">
+                              ৳{room.basePrice.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] text-gray-300"> / night</span>
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                              <span className="font-semibold text-gold-600 uppercase tracking-wider">
+                                {room.category} Class
+                              </span>
+                              <span>{room.sizeSqFt} sq. ft.</span>
+                            </div>
+
+                            <h3 className="font-serif font-bold text-xl text-gray-900 mb-2 group-hover:text-gold-600 transition-colors">
+                              {room.name}
+                            </h3>
+
+                            <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-4">
+                              {room.description}
+                            </p>
+
+                            {/* Quick Spec Pills */}
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 bg-[#faf8f4] p-3 rounded-xl border border-gray-100 mb-4">
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                                <span className="truncate">Max {room.capacity} Guests</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Bed className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                                <span className="truncate">{room.bedType}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Wifi className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                                <span>Free Wi-Fi</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Tv className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                                <span>LED TV & Cable</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDetails(room);
+                              }}
+                              className="w-full bg-gray-50 hover:bg-gold-50/80 text-gray-700 hover:text-gray-900 border border-gray-200/90 hover:border-gold-400/60 text-xs font-semibold py-2.5 rounded-xl transition-all duration-300 ease-out text-center hover:shadow-sm"
+                            >
+                              View Details
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenBooking(room.slug);
+                              }}
+                              className="group/book w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black text-xs font-bold py-2.5 rounded-xl shadow-md shadow-gold-500/20 hover:shadow-lg hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out flex items-center justify-center gap-1.5"
+                            >
+                              <span>Book Now</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover/book:translate-x-1 transition-transform duration-300" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </StaggerItem>
+                  );
+                })}
+              </StaggerGroup>
+            )}
+
+            {/* View More / Directory Buttons when more than 6 rooms exist */}
+            {filteredRooms.length > 6 && (
+              <div className="mt-12 text-center flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={() => setShowAllRooms(!showAllRooms)}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-[#0b111e] text-gray-800 hover:text-gold-400 border border-gray-300 hover:border-gold-500/50 font-semibold text-xs sm:text-sm tracking-wider transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
+                >
+                  <span>{showAllRooms ? "Show Fewer (6 Rooms)" : `View More Rooms (${filteredRooms.length})`}</span>
+                </button>
+                <Link
+                  href="/rooms"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0b111e] hover:bg-gold-500 text-gold-400 hover:text-black border border-gold-500/40 font-bold text-xs sm:text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg group"
+                >
+                  <span>Browse Full Directory & Filter</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            )}
           </div>
         </section>
 
@@ -598,172 +761,6 @@ export default function HomePage() {
                 </div>
               </FadeIn>
             </div>
-          </div>
-        </section>
-
-        {/* ========================================================= */}
-        {/* ROOMS & SUITES SECTION (SCROLL ANIMATED)                  */}
-        {/* ========================================================= */}
-        <section id="rooms" className="py-20 bg-[#f8f5ee]">
-          <div className="max-w-7xl mx-auto px-4">
-            {/* Header */}
-            <FadeIn direction="up">
-              <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-                <span className="text-xs uppercase tracking-widest text-gold-600 font-bold">
-                  Luxury Accommodations
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900">
-                  Explore Our Rooms & Suites
-                </h2>
-                <p className="text-gray-600 text-sm sm:text-base">
-                  From budget-friendly non-AC transit rooms to lavish presidential suites, every room is
-                  furnished with premium bedding, hot geysers, and sound insulation.
-                </p>
-
-                {/* Filter Tabs */}
-                <div className="flex flex-wrap justify-center gap-2 pt-4">
-                  {[
-                    { label: "All Rooms", value: "ALL" },
-                    { label: "Deluxe (AC)", value: "DELUXE" },
-                    { label: "Economy (Non-AC)", value: "ECONOMY" },
-                    { label: "Couple", value: "COUPLE" },
-                    { label: "Family", value: "FAMILY" },
-                    { label: "Single", value: "SINGLE" },
-                  ].map((tab) => (
-                    <button
-                      key={tab.value}
-                      onClick={() => setActiveCategory(tab.value)}
-                      className={`px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition ${
-                        activeCategory === tab.value
-                          ? "bg-[#0b111e] text-gold-400 shadow-md"
-                          : "bg-white text-gray-600 hover:text-black border border-gray-200"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Room Cards Grid */}
-            {loadingRooms ? (
-              <div className="py-20 text-center text-gray-500 font-medium">
-                Loading rooms & suites...
-              </div>
-            ) : (
-              <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredRooms.map((room) => {
-                  const mainImage = (Array.isArray(room.images) && room.images[0]) || "https://images.unsplash.com/photo-1590490360182-c33d57733427";
-
-                  return (
-                    <StaggerItem key={room.id}>
-                      <div
-                        onClick={() => handleOpenDetails(room)}
-                        className="group bg-white rounded-2xl overflow-hidden border border-gray-200/90 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full transform hover:-translate-y-1.5 cursor-pointer"
-                      >
-                        {/* Image Preview Container */}
-                        <div className="relative h-60 w-full overflow-hidden bg-gray-900">
-                          <Image
-                            src={optimizeImageUrl(mainImage, 800)}
-                            alt={room.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-700"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                          {/* AC Badge */}
-                          <div className="absolute top-3 left-3">
-                            <span
-                              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow ${
-                                room.isAc
-                                  ? "bg-cyan-900/90 text-cyan-200 border border-cyan-700"
-                                  : "bg-gray-900/90 text-gray-300 border border-gray-700"
-                              }`}
-                            >
-                              {room.isAc ? "Air Conditioned" : "Non-AC Economy"}
-                            </span>
-                          </div>
-
-                          {/* Price Badge */}
-                          <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-sm text-white px-3 py-1.5 rounded-xl border border-gold-500/40">
-                            <span className="text-base font-bold text-gold-400">
-                              ৳{room.basePrice.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] text-gray-300"> / night</span>
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-5 flex-1 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                              <span className="font-semibold text-gold-600 uppercase tracking-wider">
-                                {room.category} Class
-                              </span>
-                              <span>{room.sizeSqFt} sq. ft.</span>
-                            </div>
-
-                            <h3 className="font-serif font-bold text-xl text-gray-900 mb-2 group-hover:text-gold-600 transition-colors">
-                              {room.name}
-                            </h3>
-
-                            <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-4">
-                              {room.description}
-                            </p>
-
-                            {/* Quick Spec Pills */}
-                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 bg-[#faf8f4] p-3 rounded-xl border border-gray-100 mb-4">
-                              <div className="flex items-center gap-1.5">
-                                <Users className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
-                                <span className="truncate">Max {room.capacity} Guests</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <Bed className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
-                                <span className="truncate">{room.bedType}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <Wifi className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
-                                <span>Free Wi-Fi</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <Tv className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
-                                <span>LED TV & Cable</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenDetails(room);
-                              }}
-                              className="w-full bg-gray-50 hover:bg-gold-50/80 text-gray-700 hover:text-gray-900 border border-gray-200/90 hover:border-gold-400/60 text-xs font-semibold py-2.5 rounded-xl transition-all duration-300 ease-out text-center hover:shadow-sm"
-                            >
-                              View Details
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenBooking(room.slug);
-                              }}
-                              className="group/book w-full bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 bg-[length:200%_auto] hover:bg-right text-black text-xs font-bold py-2.5 rounded-xl shadow-md shadow-gold-500/20 hover:shadow-lg hover:shadow-gold-500/35 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 ease-out flex items-center justify-center gap-1.5"
-                            >
-                              <span>Book Now</span>
-                              <ArrowRight className="w-3.5 h-3.5 group-hover/book:translate-x-1 transition-transform duration-300" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </StaggerItem>
-                  );
-                })}
-              </StaggerGroup>
-            )}
           </div>
         </section>
 
