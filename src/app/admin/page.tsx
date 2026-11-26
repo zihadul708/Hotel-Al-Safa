@@ -34,6 +34,8 @@ import {
   CheckCircle,
   LogOut,
   UserPlus,
+  Printer,
+  Share2,
 } from "lucide-react";
 
 interface AdminBooking {
@@ -145,6 +147,7 @@ export default function AdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
+  const [copiedBookingId, setCopiedBookingId] = useState<string | null>(null);
 
   // New Booking & Reservation Management State
   const [newBookingModalOpen, setNewBookingModalOpen] = useState(false);
@@ -376,6 +379,131 @@ export default function AdminDashboardPage() {
   const handleOpenBookingDetails = (b: AdminBooking) => {
     setSelectedBooking(b);
     setEditAllottedRoom(b.allottedRoom || "");
+  };
+
+  // Print Booking Info Sheet
+  const handlePrintBooking = (b: AdminBooking) => {
+    const printWin = window.open("", "_blank", "width=800,height=900");
+    if (!printWin) {
+      window.open(`/booking/${b.bookingCode}`, "_blank");
+      return;
+    }
+
+    const escape = (val: string | number | null | undefined) =>
+      String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    const checkInStr = new Date(b.checkIn).toLocaleDateString();
+    const checkOutStr = new Date(b.checkOut).toLocaleDateString();
+
+    printWin.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Booking Info - ${escape(b.bookingCode)}</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #111827; padding: 32px; max-width: 720px; margin: 0 auto; }
+    .header { border-bottom: 3px solid #d4af37; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .brand { font-size: 20px; font-weight: bold; letter-spacing: 0.5px; color: #0b1220; }
+    .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .code { font-family: monospace; font-size: 18px; font-weight: bold; color: #b45309; }
+    .section { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    .section h3 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: #b45309; border-bottom: 1px solid #f3f4f6; padding-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; font-size: 13px; }
+    .label { color: #6b7280; font-size: 11px; display: block; }
+    .val { font-weight: 600; color: #111827; }
+    .total { font-size: 16px; font-weight: bold; color: #b45309; }
+    .footer { margin-top: 20px; font-size: 11px; color: #6b7280; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 12px; }
+    @media print { body { padding: 12px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">HOTEL AL SAFA INTERNATIONAL</div>
+      <div class="sub">Mili Super Tower-2, Ashkona, Airport Road, Dhaka-1230 • +880 1916-944212</div>
+    </div>
+    <div style="text-align:right">
+      <span class="label">Booking Code</span>
+      <div class="code">${escape(b.bookingCode)}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Guest Information</h3>
+    <div class="grid">
+      <div><span class="label">Guest Name</span><span class="val">${escape(b.guestName)}</span></div>
+      <div><span class="label">Phone</span><span class="val">${escape(b.guestPhone)}</span></div>
+      <div><span class="label">Email</span><span class="val">${escape(b.guestEmail || "N/A")}</span></div>
+      <div><span class="label">NID / Passport</span><span class="val">${escape(b.guestNidPassport || "N/A")}</span></div>
+      <div><span class="label">Address</span><span class="val">${escape(b.permanentAddress || "N/A")}</span></div>
+      <div><span class="label">Occupation / Nationality</span><span class="val">${escape(b.occupation || "N/A")} • ${escape(b.nationality || "Bangladeshi")}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Reservation & Room Details</h3>
+    <div class="grid">
+      <div><span class="label">Room Category</span><span class="val">${escape(b.roomType?.name || "N/A")}</span></div>
+      <div><span class="label">Allotted Room #</span><span class="val">${escape(b.allottedRoom ? "#" + b.allottedRoom : "Not Assigned")}</span></div>
+      <div><span class="label">Check-in</span><span class="val">${escape(checkInStr)}</span></div>
+      <div><span class="label">Check-out</span><span class="val">${escape(checkOutStr)} (${escape(b.nights)} Night${b.nights > 1 ? "s" : ""})</span></div>
+      <div><span class="label">Guests</span><span class="val">${escape(b.adults)} Adults, ${escape(b.children)} Children</span></div>
+      <div><span class="label">Reservation Status</span><span class="val">${escape(b.status)}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Billing & Payment</h3>
+    <div class="grid">
+      <div><span class="label">Payment Method</span><span class="val">${escape(b.paymentMethod)}</span></div>
+      <div><span class="label">Payment Status</span><span class="val">${escape(b.paymentStatus)}</span></div>
+      <div><span class="label">Total Amount</span><span class="total">BDT ${escape(b.totalAmount.toLocaleString())}</span></div>
+      <div><span class="label">Paid Amount</span><span class="val">BDT ${escape(b.paidAmount.toLocaleString())}</span></div>
+    </div>
+    ${b.specialRequests ? `<div style="margin-top:10px;font-size:12px;"><span class="label">Notes / Requests</span><span class="val">${escape(b.specialRequests)}</span></div>` : ""}
+  </div>
+
+  <div class="footer">Printed from Hotel Al Safa International Front Desk Portal</div>
+  <script>window.onload = function() { window.print(); };</script>
+</body>
+</html>`);
+    printWin.document.close();
+  };
+
+  // Share Booking Info (Web Share API with Clipboard fallback)
+  const handleShareBooking = async (b: AdminBooking) => {
+    const voucherUrl = `${window.location.origin}/booking/${b.bookingCode}`;
+    const summaryText = [
+      `Hotel Al Safa International — Booking Info`,
+      `Code: ${b.bookingCode}`,
+      `Guest: ${b.guestName} (${b.guestPhone})`,
+      `Room: ${b.roomType?.name || "Suite"}${b.allottedRoom ? ` (#${b.allottedRoom})` : ""}`,
+      `Check-in: ${new Date(b.checkIn).toLocaleDateString()} | Check-out: ${new Date(b.checkOut).toLocaleDateString()} (${b.nights} Night${b.nights > 1 ? "s" : ""})`,
+      `Total: ৳${b.totalAmount.toLocaleString()} (${b.paymentMethod} - ${b.paymentStatus})`,
+      `Voucher: ${voucherUrl}`,
+    ].join("\n");
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Booking ${b.bookingCode} — ${b.guestName}`,
+          text: summaryText,
+          url: voucherUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(summaryText);
+      setCopiedBookingId(b.id);
+      setTimeout(() => setCopiedBookingId(null), 2500);
+    }
   };
 
   // Save Allotted Room for a Booking
@@ -1202,12 +1330,6 @@ export default function AdminDashboardPage() {
                 </>
               )}
             </button>
-
-            {/* Quick Helper Credentials Note */}
-            <div className="p-3 bg-[#111c33] rounded-xl border border-gold-500/20 text-[11px] text-gray-400 text-center space-y-0.5">
-              <span className="text-gold-300 font-semibold block">Default System Credentials</span>
-              <span>Username: <strong className="text-white font-mono">admin</strong> &bull; Password: <strong className="text-white font-mono">admin123</strong></span>
-            </div>
           </form>
 
           <div className="pt-2 border-t border-gray-800 text-center">
@@ -1236,7 +1358,7 @@ export default function AdminDashboardPage() {
             </div>
             <div>
               <span className="font-serif font-bold text-white text-lg tracking-wide block">
-                HOTEL AL SAFA
+                HOTEL AL SAFA INTERNATIONAL
               </span>
               <span className="text-[10px] text-gold-400 font-semibold uppercase tracking-widest">
                 Front Desk & Management Portal
@@ -1581,6 +1703,24 @@ export default function AdminDashboardPage() {
                               >
                                 <Eye className="w-3.5 h-3.5 text-gold-400" />
                                 <span>View</span>
+                              </button>
+                              <button
+                                onClick={() => handlePrintBooking(b)}
+                                className="p-1.5 rounded-lg bg-[#141f36] hover:bg-gold-500/20 text-gray-300 hover:text-gold-300 border border-gray-700/80 transition"
+                                title="Print Booking Info"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleShareBooking(b)}
+                                className="p-1.5 rounded-lg bg-[#141f36] hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-300 border border-gray-700/80 transition"
+                                title={copiedBookingId === b.id ? "Copied Booking Info!" : "Share Booking Info"}
+                              >
+                                {copiedBookingId === b.id ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                ) : (
+                                  <Share2 className="w-3.5 h-3.5" />
+                                )}
                               </button>
                               <button
                                 onClick={() => handleDeleteBooking(b.id, b.bookingCode, b.guestName)}
@@ -2340,7 +2480,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-between items-center pt-3 border-t border-gray-800">
+              <div className="flex flex-wrap justify-between items-center gap-2 pt-3 border-t border-gray-800">
                 <button
                   type="button"
                   onClick={() => handleDeleteBooking(selectedBooking.id, selectedBooking.bookingCode, selectedBooking.guestName)}
@@ -2349,13 +2489,40 @@ export default function AdminDashboardPage() {
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedBooking(null)}
-                  className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-6 py-2.5 rounded-xl transition shadow"
-                >
-                  Close
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePrintBooking(selectedBooking)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#141f36] hover:bg-[#1d2d4e] text-gray-200 border border-gray-700 transition text-xs font-semibold"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Print Info</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleShareBooking(selectedBooking)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#141f36] hover:bg-emerald-950/60 text-gray-200 hover:text-emerald-300 border border-gray-700 transition text-xs font-semibold"
+                  >
+                    {copiedBookingId === selectedBooking.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBooking(null)}
+                    className="bg-gold-500 hover:bg-gold-400 text-black text-xs font-bold px-5 py-2 rounded-xl transition shadow"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

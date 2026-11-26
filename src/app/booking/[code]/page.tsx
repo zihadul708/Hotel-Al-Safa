@@ -92,6 +92,30 @@ export default function BookingVoucherPage() {
     window.print();
   };
 
+  const handleShare = async () => {
+    if (!booking) return;
+    const shareUrl = window.location.href;
+    const shareText = `Hotel Al Safa International — Booking ${booking.bookingCode}\nGuest: ${booking.guestName}\nRoom: ${booking.roomType?.name || ""}\nCheck-in: ${new Date(booking.checkIn).toLocaleDateString()}\nVoucher: ${shareUrl}`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Booking ${booking.bookingCode} — Hotel Al Safa International`,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText);
+      alert("Booking info & link copied to clipboard!");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#070b14] flex flex-col items-center justify-center text-white p-4">
@@ -168,6 +192,13 @@ export default function BookingVoucherPage() {
           >
             <Printer className="w-4 h-4" />
             <span>{viewMode === "policeForm" ? "Print Police Form" : "Print Voucher"}</span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 bg-[#141f36] hover:bg-[#1d2d4e] text-gold-400 border border-gold-500/40 text-xs sm:text-sm px-3.5 py-2 rounded-xl font-semibold transition"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Share</span>
           </button>
           <a
             href={`https://wa.me/8801916944212?text=Hello%20Hotel%20Al%20Safa,%20I%20am%20inquirying%20about%20my%20voucher%20${booking.bookingCode}`}

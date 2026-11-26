@@ -29,6 +29,8 @@ import {
   BookOpen,
   Award,
   ExternalLink,
+  Car,
+  Lock,
 } from "lucide-react";
 import { TopBar, Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -783,14 +785,17 @@ export default function HomePage() {
               </div>
             </FadeIn>
 
-            <StaggerGroup className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <StaggerGroup className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[
-                { title: "24/7 Hot Water", desc: "Geyser in all en-suites", icon: Clock },
+                { title: "24/7 Hot Water", desc: "", icon: Clock },
                 { title: "High-Speed Wi-Fi", desc: "Dedicated high-bandwidth", icon: Wifi },
                 { title: "Power Generator", desc: "100% continuous backup", icon: Sparkles },
                 { title: "Soundproof Rooms", desc: "Quiet & restful comfort", icon: ShieldCheck },
                 { title: "Luggage Cloak", desc: "Safe keeping for guests", icon: ShieldCheck },
                 { title: "24/7 Front Desk", desc: "Attentive reception desk", icon: Clock },
+                { title: "Secure Car Parking", desc: "Dedicated guest parking", icon: Car },
+                { title: "24-Hour Room Service", desc: "Round-the-clock assistance", icon: UtensilsCrossed },
+                { title: "Safety Locker", desc: "Secure valuables storage", icon: Lock },
               ].map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -800,7 +805,7 @@ export default function HomePage() {
                         <Icon className="w-5 h-5" />
                       </div>
                       <h4 className="font-bold text-sm text-gray-900 mb-1">{item.title}</h4>
-                      <p className="text-[11px] text-gray-500">{item.desc}</p>
+                      {item.desc && <p className="text-[11px] text-gray-500">{item.desc}</p>}
                     </div>
                   </StaggerItem>
                 );

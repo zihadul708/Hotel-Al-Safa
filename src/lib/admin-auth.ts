@@ -6,6 +6,7 @@ import { isSupabaseConfigured, supabaseAdmin } from "./supabase";
 export interface AdminUser {
   id: string;
   username: string;
+  email?: string;
   passwordHash: string;
   salt: string;
   name: string;

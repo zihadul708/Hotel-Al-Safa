@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase-db";
 import { prisma } from "@/lib/prisma";
 import { fallbackStore, FallbackRoomType } from "@/lib/mock-data";
+import { sendAdminBookingNotification } from "@/lib/mailer";
 
 export async function GET() {
   // 1. Primary Cloud Backend: Supabase
@@ -135,6 +136,25 @@ export async function POST(req: Request) {
           discountAmount: Number(discountAmount) || 0,
         });
 
+        await sendAdminBookingNotification({
+          bookingCode: newSupabaseBooking.bookingCode,
+          guestName: newSupabaseBooking.guestName,
+          guestPhone: newSupabaseBooking.guestPhone,
+          guestEmail: newSupabaseBooking.guestEmail,
+          guestNidPassport: newSupabaseBooking.guestNidPassport,
+          permanentAddress: newSupabaseBooking.permanentAddress,
+          roomName: newSupabaseBooking.roomType?.name || availability.room?.name,
+          checkIn: newSupabaseBooking.checkIn,
+          checkOut: newSupabaseBooking.checkOut,
+          nights: newSupabaseBooking.nights,
+          adults: newSupabaseBooking.adults,
+          children: newSupabaseBooking.children,
+          totalAmount: newSupabaseBooking.totalAmount,
+          paymentMethod: newSupabaseBooking.paymentMethod,
+          paymentStatus: newSupabaseBooking.paymentStatus,
+          specialRequests: newSupabaseBooking.specialRequests,
+        }).catch((err) => console.error("[Mailer] Notification failed:", err));
+
         return NextResponse.json(newSupabaseBooking, { status: 201 });
       } catch (err) {
         console.warn("Supabase booking creation failed, attempting local fallback:", err);
@@ -205,6 +225,25 @@ export async function POST(req: Request) {
           },
         });
 
+        await sendAdminBookingNotification({
+          bookingCode: newBooking.bookingCode,
+          guestName: newBooking.guestName,
+          guestPhone: newBooking.guestPhone,
+          guestEmail: newBooking.guestEmail,
+          guestNidPassport: newBooking.guestNidPassport,
+          permanentAddress: newBooking.permanentAddress,
+          roomName: newBooking.roomType?.name || roomType.name,
+          checkIn: newBooking.checkIn.toISOString(),
+          checkOut: newBooking.checkOut.toISOString(),
+          nights: newBooking.nights,
+          adults: newBooking.adults,
+          children: newBooking.children,
+          totalAmount: newBooking.totalAmount,
+          paymentMethod: newBooking.paymentMethod,
+          paymentStatus: newBooking.paymentStatus,
+          specialRequests: newBooking.specialRequests,
+        }).catch((err) => console.error("[Mailer] Notification failed:", err));
+
         return NextResponse.json(newBooking, { status: 201 });
       }
     } catch (dbErr) {
@@ -246,6 +285,25 @@ export async function POST(req: Request) {
       roomTypeId: room.id,
       roomType: room,
     });
+
+    await sendAdminBookingNotification({
+      bookingCode: fallbackBooking.bookingCode,
+      guestName: fallbackBooking.guestName,
+      guestPhone: fallbackBooking.guestPhone,
+      guestEmail: fallbackBooking.guestEmail,
+      guestNidPassport: fallbackBooking.guestNidPassport,
+      permanentAddress: fallbackBooking.permanentAddress,
+      roomName: room.name,
+      checkIn: fallbackBooking.checkIn,
+      checkOut: fallbackBooking.checkOut,
+      nights: fallbackBooking.nights,
+      adults: fallbackBooking.adults,
+      children: fallbackBooking.children,
+      totalAmount: fallbackBooking.totalAmount,
+      paymentMethod: fallbackBooking.paymentMethod,
+      paymentStatus: fallbackBooking.paymentStatus,
+      specialRequests: fallbackBooking.specialRequests,
+    }).catch((err) => console.error("[Mailer] Notification failed:", err));
 
     return NextResponse.json(fallbackBooking, { status: 201 });
   } catch (error) {

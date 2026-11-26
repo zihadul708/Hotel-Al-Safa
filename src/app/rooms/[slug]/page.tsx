@@ -197,6 +197,28 @@ export default function RoomDetailPage() {
                 )}
               </div>
 
+              {/* Highlighted Book Now CTA after Gallery */}
+              <div className="bg-gradient-to-r from-[#0b1220] via-[#121e36] to-[#0b1220] p-4 sm:p-5 rounded-2xl border-2 border-gold-500/70 shadow-xl shadow-gold-500/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5 text-gold-400 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Instant Direct Reservation</span>
+                  </div>
+                  <p className="text-white font-serif font-bold text-lg sm:text-xl mt-0.5">
+                    ৳{room.basePrice.toLocaleString()}{" "}
+                    <span className="text-xs text-gray-300 font-sans font-normal">/ night &bull; Best Rate Guaranteed</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setBookingModalOpen(true)}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-gold-400 via-gold-500 to-amber-400 hover:from-gold-300 hover:to-amber-300 text-black font-extrabold text-base rounded-xl shadow-[0_0_25px_rgba(212,175,55,0.45)] ring-2 ring-gold-300/80 transition transform hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span>Book Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
               {/* Quick Specs Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm text-center">
                 <div className="border-r last:border-r-0 border-gray-100">
@@ -301,11 +323,23 @@ export default function RoomDetailPage() {
                     <span>Free high-speed fiber Wi-Fi</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
+                    <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
                     <span>24/7 Hot water geyser & generator backup</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-gold-400" />
+                    <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
+                    <span>Secure car parking</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
+                    <span>24-hour room service</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
+                    <span>Safety locker</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-gold-400 flex-shrink-0" />
                     <span>No hidden cancellation fees</span>
                   </div>
                 </div>
