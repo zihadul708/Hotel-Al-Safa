@@ -47,7 +47,7 @@ export default function RoomsPage() {
   const [detailRoom, setDetailRoom] = useState<RoomTypeData | null>(null);
 
   useEffect(() => {
-    fetch("/api/rooms")
+    fetch("/api/rooms", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data: RoomTypeData[]) => {
         setRooms(Array.isArray(data) ? data : []);

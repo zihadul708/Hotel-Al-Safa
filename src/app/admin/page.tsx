@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
     try {
       const [resBookings, resRooms, resInquiries, resSlides, resUsers] = await Promise.all([
         fetch("/api/bookings"),
-        fetch("/api/rooms"),
+        fetch("/api/rooms", { cache: "no-store" }),
         fetch("/api/inquiries"),
         fetch("/api/hero-slides?all=true"),
         fetch("/api/admin/users"),
@@ -701,9 +701,13 @@ export default function AdminDashboardPage() {
           prev.map((r) => (r.id === roomId ? { ...r, basePrice: newPrice } : r))
         );
         setEditingRoomId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to update room price.");
       }
     } catch (err) {
       console.error("Room price save error:", err);
+      alert("Failed to update room price.");
     } finally {
       setUpdatingPrice(false);
     }
@@ -859,7 +863,10 @@ export default function AdminDashboardPage() {
       basePrice: Number(editingRoom.basePrice) || 2500,
       capacity: Number(editingRoom.capacity) || 2,
       sizeSqFt: Number(editingRoom.sizeSqFt) || 280,
-      availableUnits: Number(editingRoom.availableUnits) || 5,
+      availableUnits:
+        editingRoom.availableUnits !== undefined && editingRoom.availableUnits !== null
+          ? Number(editingRoom.availableUnits)
+          : 5,
     };
 
     try {

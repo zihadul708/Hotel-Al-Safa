@@ -516,3 +516,12 @@ CREATE POLICY "Service role full access on hero slides" ON public.hero_slides
 DROP POLICY IF EXISTS "Service role full access on admin users" ON public.admin_users;
 CREATE POLICY "Service role full access on admin users" ON public.admin_users
     FOR ALL USING (auth.role() = 'service_role' OR auth.role() = 'authenticated');
+
+-- ==============================================================================
+-- SCHEMA & TABLE PERMISSIONS (Required for PostgREST / service_role & anon)
+-- ==============================================================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT SELECT ON public.room_types, public.promo_codes, public.reviews, public.hero_slides TO anon, authenticated;
+GRANT INSERT, SELECT ON public.bookings, public.inquiries TO anon, authenticated;

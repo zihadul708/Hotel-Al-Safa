@@ -42,7 +42,7 @@ export default function RoomDetailPage() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/rooms")
+    fetch("/api/rooms", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((rooms: RoomTypeData[]) => {
         const safeRooms = Array.isArray(rooms) ? rooms : [];

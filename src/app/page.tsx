@@ -110,7 +110,7 @@ export default function HomePage() {
   const [selectedDetailRoom, setSelectedDetailRoom] = useState<RoomTypeData | null>(null);
 
   useEffect(() => {
-    fetch("/api/rooms")
+    fetch("/api/rooms", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         setRooms(Array.isArray(data) ? data : []);
